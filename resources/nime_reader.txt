@@ -1,0 +1,30 @@
+Principles for Designing Computer Music Controllers
+Problems and Prospects for Intimate Musical Control of Computers
+The Importance of Parameter Mapping in Electronic Instrument Design
+Multimodal Interaction in Music Using the Electromyogram and Relative Position Sensing
+The Plank: Designing a Simple Haptic Controller 
+Contexts of Collaborative Musical Experiences
+Sonigraphical Instruments: From FMOL to the reacTable*
+Designing, Playing, and Performing with a Vision-Based Mouth Interface
+Open Sound Control: State of the Art 2003
+The Electronic Sitar Controller
+PebbleBox and CrumbleBag: Tactile Interfaces for Granular Synthesis
+Toward a Generalized Friction Controller: From the Bowed String to Unusual Musical Instruments
+On-the-Fly Programming: Using Code as an Expressive Musical Instrument
+Towards a Dimension Space for Musical Devices
+The Overtone Violin
+Sensemble: A Wireless, Compact, Multi-user Sensor System for Interactive Dance
+Mobile Music Technology: Report on an Emerging Community
+Wireless Sensor Interface and Gesture-Follower for Music Pedagogy
+Don’t Forget the Laptop: Using Native Input Capabilities for Expressive Musical Control
+Expression and Its Discontents: Toward an Ecology of Musical Creation
+The Acoustic, the Digital and the Body: ASurveyonMusicalInstruments
+Eight Years of Practice on the Hyper-Flute: Technological and Musical Perspectives
+A History of Hemispherical Speakers at Princeton, Plus a DIY Guide
+Satellite CCRMA: A Musical Interaction and Sound Synthesis Platform
+The Fingerphone: A Case Study of Sustainable Instrument Redesign
+To Be Inside Someone Else’s Dream: Music for Sleeping and Waking Minds
+TouchKeys: Capacitive Multi-touch Sensing on a Physical Keyboard
+The Web Browser as Synthesizer and Interface
+To Gesture or Not? An Analysis of Terminology in NIME Proceedings 2001–2013
+Fourteen Years of NIME: The Value and Meaning of ‘Community’ in Interactive Music Research

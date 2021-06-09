@@ -1,0 +1,21 @@
+year,place,geocoordinates,country,country_iso3,continent,organizer,reviewers,keynotes,keynote_1_first,keynote_1_last,keynote_1_sex,keynote_2_first,keynote_2_last,keynote_2_sex,keynote_3_first,keynote_3_last,keynote_3_sex,keynote_4_first,keynote_4_last,keynote_4_sex
+2001,"Seattle, Washington","47.6062° N, 122.3321° W",United States of America,USA,North America,Conference on Human Factors in Computing Systems,14,1,Max,Matthews,M,,,,,,,,,
+2002,Dublin,"53.3498° N, 6.2603° W",Ireland,IRL,Europe,Media Lab Europe,28,2,Tod,Machover,M,Joel,Chadabe,M,,,,,,
+2003,Montreal,"45.5017° N, 73.5673° W",Canada,CAN,North America,McGill University,63,3,Joseph,Paradiso,M,Claude,Cadoz,M,Michel,Waiswisz,M,,,
+2004,Hamamatsu,"34.7103° N, 137.7274° E",Japan,JPN,Asia,Shizuoka University of Art and Culture,41,2,Robert,Moog,M,Toshio,Iwai,M,,,,,,
+2005,Vancouver,"49.2827° N, 123.1207° W",Canada,CAN,North America,University of British Columbia,55,3,Don,Buchla,M,Golan,Levin,M,Bill,Buxton,M,,,
+2006,Paris,"48.8566° N, 2.3522° E",France,FRA,Europe,IRCAM,126,2,George,Lewis,M,William,Gaver,M,,,,,,
+2007,"New York City, New York","40.7128° N, 74.0060° W",United States of America,USA,North America,New York University,147,3,Perry,Cook,M,Gerhard,Trimpin,M,Teresa Marrin,Nakra,F,,,
+2008,Genova,"44.4056° N, 8.9463° E",Italy,ITA,Europe,University of Genova,142,2,Andrew,Gerzso,M,Xavier,Serra,M,,,,,,
+2009,"Pittsburgh, Pennsylvania","40.4406° N, 79.9959° W",United States of America,USA,North America,Carnegie Mellon School of Music,103,1,Paul,DeMarinis,M,,,,,,,,,
+2010,Sydney,"33.8688° S, 151.2093° E",Australia,AUS,Oceania,University of Technology Sydney,155,2,Nicolas,Collins,M,,Stelarc,M,,,,,,
+2011,Oslo,"59.9139° N, 10.7522° E",Norway,NOR,Europe,University of Oslo,173,3,Tellef,Kvifte,M,David,Rokeby,M,Sergi,Jorga,M,,,
+2012,"Ann Arbor, Michigan","42.2808° N, 83.7430° W",United States of America,USA,North America,University of Michigan,160,2,David,Wessel,M,David,Huron,M,,,,,,
+2013,Daejeon,"36.3504° N, 127.3845° E",Republic of Korea,PRK,Asia,Korea Advanced Institute of Science and Technology,106,2,Bill,Verplank,M,Ajay,Kapur,M,,,,,,
+2014,London,"51.5074° N, 0.1278° W",United Kingdom,GBR,Europe,Goldsmiths University,237,2,Hiroshi,Ishii,M,Laetitia,Sonami,F,,,,,,
+2015,"Baton Rouge, Louisiana","30.4515° N, 91.1871° W",United States of America,USA,North America,Louisiana State University,201,2,Roger Luke ,DuBois,M,Sile,O’Modhrain,F,,,,,,
+2016,Brisbane,"27.4698° S, 153.0251° E",Australia,AUS,Oceania,Griffith University,150,2,Miya,Masaoka,F,Garth,Paine,M,,,,,,
+2017,Copenhagen,"55.6761° N, 12.5683° E",Denmark,DNK,Europe,Aalborg University Copenhagen,148,3,Ge,Wang,M,Dorit,Chrysler,F,Chris,Chafe,M,,,
+2018,"Blacksburg, Virginia","37.2296° N, 80.4139° W",United States of America,USA,North America,Virginia Tech,211,4,Onyx,Ashanti,M,R. Benjamin,Knapp ,M,Ikue,Mori,F,Pamela,Z,F
+2019,Porto Alegre,"30.0346° S, 51.2177° W",Brazil,BRA,South America,Federal University of Rio Grande do Sul,260,3,Marcelo Mortensen,Wanderley,M,Eduardo Reck,Miranda,M,Ana María Romano,Gomez,F,,,
+2020,Birmingham,"52.4862° N, 1.8904° W",United Kingdom,GBR,Europe,Royal Birmingham Conservatoire,235,4,,Drake Music Labs,M & F,,Crewdson & Cevanne,M & F,,Dunning & Underwood,M,Lilja Maria ,Asmundsdottir,F
