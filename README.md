@@ -56,15 +56,15 @@ The most time consuming operations are: downloading of PDF files associated with
 
 Depending on the arguments, the script may interactively prompt "Yes"/"No" questions to the user in the initial phases of the execution.
 
-**-v** - This argument prints details of the script's progress. Thanks to the cache, if the script encounters a temporary error (e.g. fail to download a file) or if it gets intentionally interrupted, data computed/downloaded in the previous run will not be lost. When restarted, the script will quickly progress to the point in which it was interrupted.
+**-v**: This argument prints details of the script's progress. Thanks to the cache, if the script encounters a temporary error (e.g. fail to download a file) or if it gets intentionally interrupted, data computed/downloaded in the previous run will not be lost. When restarted, the script will quickly progress to the point in which it was interrupted.
 
-**-c** - Citations associated with papers changes very frequently and this argument forces the script to bypass the citation info stored in the cache file and retrieve new ones from Semantic Scholar. The updated citation number is then stored in the cache.
+**-c**: Citations associated with papers changes very frequently and this argument forces the script to bypass the citation info stored in the cache file and retrieve new ones from Semantic Scholar. The updated citation number is then stored in the cache.
 
-**-g** - This argument forces the script to regenerate the xml files associated with the papers using Grobid. This may be suitable when a new version of Grobid is released. The script downloads and uses the latest release of Grobid. You can check the used version from the associated cache folder.
+**-g**: This argument forces the script to regenerate the xml files associated with the papers using Grobid. This may be suitable when a new version of Grobid is released. The script downloads and uses the latest release of Grobid. You can check the used version from the associated cache folder.
 
-**-r** - This argument deletes all cached files to make a clean start.
+**-r**: This argument deletes all cached files to make a clean start.
 
-**-n** - This argument enables a few manual corrections of author names and gender specific to NIME authors. Despite an effort to make the tool as generic and robust as possible, there are still a few exceptions, often due to inconsistent recording of data. Their handling is managed by the portions of the script which are executed only if this argument is passed to the script.
+**-n**: This argument enables a few manual corrections of author names and gender specific to NIME authors. Despite an effort to make the tool as generic and robust as possible, there are still a few exceptions, often due to inconsistent recording of data. Their handling is managed by the portions of the script which are executed only if this argument is passed to the script.
 
 ### analysis_meta.py
 
@@ -77,9 +77,9 @@ The script accepts the following optional arguments:
 -  **-v, --verbose**    prints out operations
 -  **-n, --nime**       uses NIME based corrections
 
-**-v** - This argument prints details of the script's progress.
+**-v**: This argument prints details of the script's progress.
 
-**-n** - This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
+**-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
 
 The analysis can be restricted to specific years through the [custom.csv](#custom.csv) file in the *./resources/* folder.
 
@@ -98,23 +98,25 @@ The statistics computed by the script are stored in the following files:
 Overall statistics and are included in the .txt files. Detailed statistic per year, paper, author, institution, country, continent, etc., are included in the .xlsx files.
 
 In the .xlsx files, sheet names are limited to 31 characters and the following abbreviations are used:
-- avg. = average
-- num. = number
-- cit. = citations
-- yr. = year
-- norm. = normalized
-- auth. = author
-- pub. = publication
-- dist. = distance
-- distr. = distribution
-- footp. = footprint
-- part. = participant
-- cont. = continent
-- count. = country
-- instit. = institute
-- \> = more than
-- % = percentage
-- \# = number of
+```
+avg. = average
+num. = number
+cit. = citations
+yr. = year
+norm. = normalized
+auth. = author
+pub. = publication
+dist. = distance
+distr. = distribution
+footp. = footprint
+part. = participant
+cont. = continent
+count. = country
+instit. = institute
+\> = more than
+% = percentage
+\# = number of
+```
 
 ## analysis_topic.py
 
@@ -125,9 +127,9 @@ The script accepts the following optional arguments:
 -  **-v, --verbose**    prints out operations
 -  **-n, --nime**       uses NIME based corrections
 
-**-v** - This argument prints details of the script's progress.
+**-v**: This argument prints details of the script's progress.
 
-**-n** - This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
+**-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
 
 The analysis can be highly customized through the *custom.csv* file in the *./resources/* folder.
 

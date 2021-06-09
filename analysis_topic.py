@@ -384,21 +384,21 @@ if __name__ == '__main__':
     processed_data = [('bodies', processed_bodies), ('titles', processed_titles)]
 
     # * LDA
-    answer = boolify(input('\nGenerate LDA scores & visualizations? (Y/N): '))
+    answer = boolify(input('\nGenerate LDA scores & visualizations? (y/N): '))
     if answer:
         gen_lda(lda_model, corpus, processed_bodies, dictionary)
 
     # * Wordcloud
-    answer = boolify(input('\nGenerate wordcloud diagrams? (Y/N): '))
+    answer = boolify(input('\nGenerate wordcloud diagrams? (y/N): '))
     if answer:
         gen_wordcloud(processed_data)
 
     # * Plot topics
-    answer = boolify(input('\nGenerate topic plots? (Y/N): '))
+    answer = boolify(input('\nGenerate topic plots? (y/N): '))
     if answer:
         gen_topic_plots(corpus, lda_model, year_dict, year_list, year_start, year_end)
 
     # * Counts
-    answer = boolify(input('\nGenerate top and unique counts? (Y/N): '))
+    answer = boolify(input('\nGenerate top and unique counts? (y/N): '))
     if answer:
         gen_counts(processed_data, year_list)

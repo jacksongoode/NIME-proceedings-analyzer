@@ -57,7 +57,7 @@ xml_src = os.getcwd()+'/cache/xml/'
 def prep(args):
     # Delete cache
     if args.redo:
-        answer = boolify(input('Do you want to delete PDFs as well? (Y/N): '))
+        answer = boolify(input('Do you want to delete PDFs as well? (y/N): '))
         if answer:
             shutil.rmtree('./cache')
         else:
@@ -172,7 +172,7 @@ def check_grobid(bib_db, overwrite=False):
         print(f'Found {len(bad_xmls)} PDFs unconverted - converting!')
         generate_grobid(overwrite)
     else:
-        answer = boolify(input(f'All XMLs exist - convert anyway? (Y/N): '))
+        answer = boolify(input(f'All XMLs exist - convert anyway? (y/N): '))
         if answer:
             generate_grobid(True)
 

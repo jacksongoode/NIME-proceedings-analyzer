@@ -644,18 +644,18 @@ if __name__ == "__main__":
     conf_df = load_conf_csv('./resources/conferences.csv')
     bib_df = load_bib_csv('./output/export.csv',user_config[3])
 
-    answer = boolify(input("\nGenerate papers statistics (Y/N): "))
+    answer = boolify(input("\nGenerate papers statistics? (y/N): "))
     if answer:
         stats_papers_out = stats_papers(bib_df)
 
-    answer = boolify(input('\nGenerate authorship statistics (Y/N): '))
+    answer = boolify(input('\nGenerate authorship statistics? (y/N): '))
     if answer:
             stats_authors_out = stats_authors(bib_df)
 
-    answer = boolify(input('\nGenerate affiliation statistics (Y/N): '))
+    answer = boolify(input('\nGenerate affiliation statistics? (y/N): '))
     if answer:
         stats_affiliation_out = stats_affiliation(bib_df, conf_df)
 
-    answer = boolify(input('\nGenerate travel statistics (Y/N): '))
+    answer = boolify(input('\nGenerate travel statistics? (y/N): '))
     if answer:
         stats_travel_out = stats_travel(bib_df, conf_df)
