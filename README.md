@@ -185,7 +185,7 @@ The following tips may help to triubleshoot the execution of pa.py:
 The extracted data from 2001 to 2020 is presented in:  
 S. Fasciani, J. Goode, [20 NIMEs: Twenty Years of New Interfaces for Musical Expression](https://nime.pubpub.org/pub/20nimes/), in proceedings of 2021 International Conference on New Interfaces for Musical Expression, Shanghai, China, 2021.
 
-The data presented in the paper has been further manually polished and arranged in a [spreadsheet]((https://docs.google.com/spreadsheets/d/134zxeEhhXp3o7G_S1oDVjDymPuj2J3Wj3ftEAdOEo8g/edit?usp=sharing).) which includes a large collection of plots and visualizations.
+The data presented in the paper has been further manually polished and arranged in a [spreadsheet](https://docs.google.com/spreadsheets/d/134zxeEhhXp3o7G_S1oDVjDymPuj2J3Wj3ftEAdOEo8g/edit?usp=sharing), which includes a large collection of plots and data visualizations.
 
 In the release section, there are versions of of this repository after the the execution of all scripts on a specific date. This include also all output and cache files except for the PDF associated with the papers (due to file size reason). Releases can be used run the meta and topic analysis without waiting for the pa.py script to generate the necessary files, or to force pa.py to update only selected outputs through the available arguments.
 
