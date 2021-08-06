@@ -32,6 +32,8 @@ import time
 import socket
 import signal
 import shutil
+import concurrent.futures
+import threading
 
 # External
 from tqdm import tqdm
@@ -138,35 +140,45 @@ def check_grobid(bib_db, overwrite=False):
     ''' Repopulate Grobid files, downloads PDFs if needed
 
     :bib_db from bibtex file
-'''
+    '''
     # Check for pdfs
     print('Checking PDFs and converting to XML!')
     xmls = os.listdir(xml_src)
     pdfs = os.listdir(pdf_src)
-    bad_xmls = []
 
-    for _, pub in enumerate(bib_db):
-        pdf_name = pub['url'].split('/')[-1]
-        xml = pdf_name.split('.')[0]+'.tei.xml'
+    thread_local = threading.local()
 
-        # Check if PDF exists - download PDFs if necessary
-        if not (pdf_name in pdfs): # this assumes override PDFs will have same name
-            print(f'Downloading {pdf_name}...')
-            try:
-                r = requests.get(pub['url'], allow_redirects=True)
-            except:
-                url = pub['url']
-                title = pub['title']
-                print(f'Failed to download from {url} the paper: {title}')
+    def get_session():
+        if not hasattr(thread_local, "session"):
+            thread_local.session = requests.Session()
+        return thread_local.session
+
+    def download_url(url):
+        pdf_name = url.split('/')[-1]
+        session = get_session()
+
+        print(f'Downloading {pdf_name}...')
+        with session.get(url) as r:
+            # r = requests.get(url, stream=True, allow_redirects=True)
+            if r.status_code == requests.codes.ok:
+                open(pdf_src + pdf_name, 'wb').write(r.content)
+            else:
+                url, title = pub['url'], pub['title']
+                print(f'\nFailed to download from {url} the paper: {title}')
                 print('Run the script again to attempt re-downloading the file.')
-                print(f'If the problem persist, download the file manually and save it in resources/corrected as {pdf_name}')
+                print(f'If the problem persists, download the file manually and save it in resources/corrected as {pdf_name}.\n')
                 quit()
 
-            open(pdf_src + pdf_name, 'wb').write(r.content)
+    url_dict = {pub['url'].split('/')[-1]:pub['url'] for pub in bib_db}
+    dl_files = list(set(url_dict.keys()) - set(pdfs)) # pdfs that aren't downloaded yet
+    dl_urls = [url_dict[f] for f in dl_files]
+    
+    # Multithread downloads
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        executor.map(download_url, dl_urls)
 
-        # Check if XML exists
-        if xml not in xmls:
-            bad_xmls.append(xml)
+    check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in url_dict.keys()]
+    bad_xmls = list(set(check_xmls) - set(xmls))
 
     if len(bad_xmls) > 0:
         print(f'Found {len(bad_xmls)} PDFs unconverted - converting!')
@@ -195,10 +207,11 @@ def generate_grobid(overwrite=False):
             oschmod.set_mode(f'./cache/grobid-{version}/gradlew', '+x')
             subprocess.run(f'cd ./cache/grobid-{version} '
                         '&& ./gradlew clean install', shell=True)
-
-            for root, _, files in os.walk(f'./cache/grobid-{version}/grobid-home/pdf2xml'):
-                for f in files:
-                    oschmod.set_mode(os.path.join(root, f), '+x')
+            exec_dir = f'./cache/grobid-{version}/grobid-home/'
+            for folder in [exec_dir+'pdf2xml', exec_dir+'pdfalto']:
+                for root, _, files in os.walk(folder):
+                    for f in files:
+                        oschmod.set_mode(os.path.join(root, f), '+x')
 
         except Exception as e:
             print(e)
@@ -212,10 +225,10 @@ def generate_grobid(overwrite=False):
     p = subprocess.Popen(['./gradlew', 'run'], cwd=f'./cache/grobid-{version}', stdout=subprocess.DEVNULL)
     for _ in tqdm(range(20), desc='Initiating Grobid server'):
         time.sleep(1) # wait for Grodid to run, might need to be longer
-    client = GrobidClient(config_path='./resources/config.json')
 
     if overwrite:
         shutil.rmtree('./cache/xml')
 
-    client.process('processFulltextDocument', pdf_src, output=xml_src, force=overwrite)
+    client = GrobidClient(config_path='./resources/config.json')
+    client.process('processFulltextDocument', pdf_src, teiCoordinates=False, output=xml_src, force=overwrite)
     p.terminate()
