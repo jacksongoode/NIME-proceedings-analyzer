@@ -7,7 +7,6 @@
 __pycache__
 scholar.log
 geckodriver.log
-/resources/config.json
 /lastrun.log
 /resources/corrected/*
 /nime/

@@ -194,7 +194,12 @@ def extract_bib(pub, args):
 
 def download_pdf(pdf_path, pub):
     pa_print.tprint('\nLocal PDF not found - downloading...')
-    r = requests.get(pub['url'], allow_redirects=True)
+    url = pub['url']
+    if 'pubpub' in url and '.pdf' not in url:
+        r = requests.get(url, allow_redirects=True)
+        url = re.search(r"pdf&quot;,&quot;url&quot;:&quot;(.*?.pdf)", r.text).group(1)
+
+    r = requests.get(url, allow_redirects=True)
     open(pdf_path, 'wb').write(r.content)
 
 def extract_text(pub):
@@ -202,7 +207,10 @@ def extract_text(pub):
 
     :publication (article) from database
     '''
-    pdf_name = pub['url'].split('/')[-1]
+    if 'pubpub' in pub['url']:
+        pdf_name = f"nime{pub['year']}_{pub['article-number']}.pdf"
+    else:
+        pdf_name = pub['url'].split('/')[-1]
     pdf_path = pdf_src + pdf_name
 
     # Allows for override of corrupted pdfs
@@ -228,7 +236,7 @@ def extract_text(pub):
             return doc
 
     else: # if not, make them
-        pa_print.tprint(f'\n Extracting: {pdf_name}')
+        pa_print.tprint(f'\nExtracting: {pdf_name}')
 
         laparams = LAParams()
         setattr(laparams, 'all_texts', True)
@@ -249,8 +257,12 @@ def extract_grobid(pub, bib_db, iterator):
             return elem.getText(separator=' ', strip=True)
         else:
             return fill
+    
+    if 'pubpub' in pub['url']:
+        file_name = f"nime{pub['year']}_{pub['article-number']}"
+    else:
+        file_name = pub['url'].split('/')[-1].split('.')[0]
 
-    file_name = pub['url'].split('/')[-1].split('.')[0]
     xml_name = file_name + '.tei.xml'
     xml_path = xml_src + xml_name
 

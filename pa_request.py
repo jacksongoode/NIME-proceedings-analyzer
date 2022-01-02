@@ -85,7 +85,7 @@ def request_scholar(pub, args):
     title = unidecode.unidecode(pub['title'])
 
     if args.nime:
-        if title == 'Now': # title is too short, this return other paper, trying to filter it out by forcing full author name without chaning the code below
+        if title == 'Now': # title is too short, this return other paper, trying to filter it out by forcing full author name
             author_last_list[0] = 'GarthPaine'
 
     pub['citation count'] = 'N/A'

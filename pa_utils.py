@@ -231,7 +231,11 @@ def post_processing(pub):
     pub['institutes'] = institutes # this is a union list to derive location using uni or organisation
 
     # Iterate through article and get raw text
-    file_name = pub['url'].split('/')[-1].split('.')[0]
+    if 'pubpub' in pub['url']:
+        file_name = f"nime{pub['year']}_{pub['article-number']}.pdf"
+    else:
+        file_name = pub['url'].split('/')[-1].split('.')[0]
+
     grob_text_file = f'./cache/text/grobid/grob_{file_name}.txt'
 
     if os.path.isfile(grob_text_file): # check if txt already exists

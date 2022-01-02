@@ -1,0 +1,2 @@
+{"grobid_server":"localhost","grobid_port":"8070","batch_size":200,"sleep_time":5,"timeout":60,"coordinates":["persName","figure","ref","biblStruct","formula"]}
+                    
