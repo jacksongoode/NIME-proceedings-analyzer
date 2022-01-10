@@ -32,7 +32,7 @@ import warnings
 import datetime
 
 # External
-from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfparser import PDFParser, PSSyntaxError
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.high_level import extract_text as extract_pdf
 from pdfminer.pdfinterp import resolve1
@@ -55,6 +55,7 @@ from lxml import etree
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 import orjson
+import pikepdf
 
 # Helper
 import pa_print
@@ -63,6 +64,7 @@ from pa_load import check_grobid
 # Variables
 pdf_src = os.getcwd()+'/cache/pdf/'
 xml_src = os.getcwd()+'/cache/xml/'
+jats_src = os.getcwd()+'/cache/jats/'
 text_src = os.getcwd()+'/cache/text/'
 gg = gender.Detector()
 
@@ -195,23 +197,25 @@ def extract_bib(pub, args):
 def download_pdf(pdf_path, pub):
     pa_print.tprint('\nLocal PDF not found - downloading...')
     url = pub['url']
-    if 'pubpub' in url and '.pdf' not in url:
-        r = requests.get(url, allow_redirects=True)
-        url = re.search(r"pdf&quot;,&quot;url&quot;:&quot;(.*?.pdf)", r.text).group(1)
-
     r = requests.get(url, allow_redirects=True)
     open(pdf_path, 'wb').write(r.content)
+
+def download_xml(xml_path, pub):
+    pa_print.tprint('\nLocal PubPub XML not found - downloading...')
+    url = pub['url']
+    r = requests.get(url, allow_redirects=True)
+    url = re.search(r"jats&quot;,&quot;url&quot;:&quot;(.*?.xml)", r.text).group(1)
+    
+    r = requests.get(url, allow_redirects=True)
+    open(jats_src, 'wb').write(r.content)
 
 def extract_text(pub):
     '''Extracts text content from pdf using pdfminer.six, downloads pdf if non-existant
 
     :publication (article) from database
     '''
-    if 'pubpub' in pub['url']:
-        pdf_name = f"nime{pub['year']}_{pub['article-number']}.pdf"
-    else:
-        pdf_name = pub['url'].split('/')[-1]
-    pdf_path = pdf_src + pdf_name
+    fn = pub['url'].split('/')[-1]
+    pdf_path = pdf_src + fn
 
     # Allows for override of corrupted pdfs
     if os.path.isfile(pdf_path):
@@ -219,15 +223,29 @@ def extract_text(pub):
     else: # doesnt exist - download
         download_pdf(pdf_path, pub)
 
-    file_name = pdf_name.split('.')[0]
-    miner_text_file = f'{text_src}miner/miner_{file_name}.txt'
-
     # Page count for those without
     if pub['page count'] == 'N/A':
         pdf = open(pdf_path, 'rb')
-        parser = PDFParser(pdf)
-        document = PDFDocument(parser)
+        check = False
+        while True:
+            try:
+                parser = PDFParser(pdf)
+                document = PDFDocument(parser)
+            except Exception as e:
+                if check is True:
+                    raise PSSyntaxError(f'{pdf_path} appears to be malformed and qpdf cannot repair it.')
+                pa_print.tprint(str(e))
+                pa_print.tprint(f'Attempting to repair {pdf_path}')
+                pike = pikepdf.Pdf.open(pdf_path, allow_overwriting_input=True)
+                pike.save(pdf_path)
+                check = True
+                continue
+            break
+
         pub['page count'] = resolve1(document.catalog['Pages'])['Count']
+
+    fn = fn.split('.')[0]
+    miner_text_file = f'{text_src}miner/miner_{fn}.txt'
 
     # Read miner text if exists
     if os.path.isfile(miner_text_file):
@@ -259,11 +277,10 @@ def extract_grobid(pub, bib_db, iterator):
             return fill
 
     if 'pubpub' in pub['url']:
-        file_name = f"nime{pub['year']}_{pub['article-number']}"
+        xml_name = f"nime{pub['year']}_{pub['article-number']}.xml"
     else:
-        file_name = pub['url'].split('/')[-1].split('.')[0]
+        xml_name = pub['url'].split('/')[-1].split('.')[0]+'.tei.xml'
 
-    xml_name = file_name + '.tei.xml'
     xml_path = xml_src + xml_name
 
     if os.path.exists(xml_path):
@@ -315,11 +332,14 @@ def extract_grobid(pub, bib_db, iterator):
         pub['grobid addresses'].extend(grob_addrs)
 
         # Extract meaningful text using grobid tags (within p tags) and save to txt
-        grob_text_file = f'{text_src}grobid/grob_{file_name}.txt'
+        grob_text_file = f"{text_src}grobid/grob_{xml_name.split('.')[0]}.txt"
         if os.path.isfile(grob_text_file): # check if txt already exists
             with open(grob_text_file, 'r') as f:
                 grob_text = f.read()
         else:
+            # ! This needs to be a little more sophisticated
+            # PubPub tei's have expansive body
+            # /n and spaces need to be addressed
             grob_text = []
             grob_body = soup.body.find_all('p')
             for p in grob_body:

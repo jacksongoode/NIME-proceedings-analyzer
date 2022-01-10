@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # * Set global print command
     pa_print.init(args)
 
-    # Print notice
+    # * Print notice
     pa_print.lprint()
 
     # * Load database for email handle to uni matching
@@ -89,16 +89,18 @@ if __name__ == "__main__":
     iterator = tqdm(bib_db)
     for _, pub in enumerate(iterator):
         pa_print.tprint(f"\n--- Now on: {pub['title']} ---")
+        pbpb = 'pubpub' in pub['url']
 
-        # Extract text from pdf, regardless
-        doc = extract_text(pub)
-        errored = doc_quality(doc, pub, 'text') # check for errors
+        # Extract text from pdf if not PubPub
+        if not pbpb:
+            doc = extract_text(pub)
+            errored = doc_quality(doc, pub, 'text') # check for errors
 
-        # Only extract header meta-data if not errored
-        if not errored:
-            author_info = extract_author_info(doc, pub)
-        else:
-            author_info = []
+            # Only extract header meta-data if not errored
+            if not errored:
+                author_info = extract_author_info(doc, pub)
+            else:
+                author_info = []
 
         # Extract doc from Grobid
         doc = extract_grobid(pub, bib_db, iterator)

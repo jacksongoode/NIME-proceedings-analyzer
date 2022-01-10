@@ -45,7 +45,7 @@ def csv_save(bib_db):
     '''
     df = pd.DataFrame(bib_db)
     df = df.sort_index(axis=1)
-    df.to_csv('./output/export.csv', index=False)
+    df.to_csv('./output/export.csv', index=False, encoding='utf-8')
 
 def calculate_carbon(pub):
     ''' Calculate the carbon emissions from travel
@@ -232,7 +232,7 @@ def post_processing(pub):
 
     # Iterate through article and get raw text
     if 'pubpub' in pub['url']:
-        file_name = f"nime{pub['year']}_{pub['article-number']}.pdf"
+        file_name = f"nime{pub['year']}_{pub['article-number']}"
     else:
         file_name = pub['url'].split('/')[-1].split('.')[0]
 
