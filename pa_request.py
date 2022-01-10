@@ -211,7 +211,6 @@ def request_location(author_info, args, pub):
         pa_print.tprint(f'\nLooking for: {location_query}')
         pub['author loc queries'].append(location_query)
         pub['author query origins'].append(query_origin)
-
         query_location(location_query, query_type, pub)
 
 def query_location(location_query, query_type, pub): # 'query_type is now only used to print status
