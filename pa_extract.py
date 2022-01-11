@@ -59,7 +59,7 @@ import pikepdf
 
 # Helper
 import pa_print
-from pa_load import check_grobid
+from pa_load import check_xml
 
 # Variables
 pdf_src = os.getcwd()+'/cache/pdf/'
@@ -214,8 +214,8 @@ def extract_text(pub):
 
     :publication (article) from database
     '''
-    fn = pub['url'].split('/')[-1]
-    pdf_path = pdf_src + fn
+    pdf_fn = pub['url'].split('/')[-1]
+    pdf_path = pdf_src + pdf_fn
 
     # Allows for override of corrupted pdfs
     if os.path.isfile(pdf_path):
@@ -227,7 +227,7 @@ def extract_text(pub):
     if pub['page count'] == 'N/A':
         pdf = open(pdf_path, 'rb')
         check = False
-        while True:
+        while True: # try once
             try:
                 parser = PDFParser(pdf)
                 document = PDFDocument(parser)
@@ -244,7 +244,7 @@ def extract_text(pub):
 
         pub['page count'] = resolve1(document.catalog['Pages'])['Count']
 
-    fn = fn.split('.')[0]
+    fn = pdf_fn.split('.')[0]
     miner_text_file = f'{text_src}miner/miner_{fn}.txt'
 
     # Read miner text if exists
@@ -254,7 +254,7 @@ def extract_text(pub):
             return doc
 
     else: # if not, make them
-        pa_print.tprint(f'\nExtracting: {pdf_name}')
+        pa_print.tprint(f'\nExtracting: {pdf_fn}')
 
         laparams = LAParams()
         setattr(laparams, 'all_texts', True)
@@ -351,9 +351,12 @@ def extract_grobid(pub, bib_db, iterator):
         return grob_text
 
     else: # No XML - populate
-        pa_print.tprint('\nGrobid file does not exist for paper!')
+        pa_print.tprint('\nGrobid XML does not exist for paper!')
+        if 'tei' not in xml_name:
+            check_xml(bib_db, jats=True)
+        else:
+            check_xml(bib_db)
         iterator.clear()
-        check_grobid(bib_db)
         iterator.refresh()
 
 def extract_author_info(doc, pub):

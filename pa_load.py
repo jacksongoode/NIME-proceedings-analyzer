@@ -143,7 +143,7 @@ def extract_bibtex(bib_db, args):
     return bib_db
 
 
-def check_grobid(bib_db, overwrite=False):
+def check_xml(bib_db, jats=False, overwrite=False):
     ''' Repopulate Grobid files, downloads PDFs if needed
 
     :bib_db from bibtex file
@@ -153,63 +153,76 @@ def check_grobid(bib_db, overwrite=False):
             thread_local.session = requests.Session()
         return thread_local.session
 
-    def download_url(url, fn):
+    def download_url(url, fn, dl_path):
         session = get_session()
 
         try:
             with session.get(url) as r:
                 print(f'Downloading {url}...')
                 if r.status_code == requests.codes.ok:
+                    # Redirect if PubPub url
+                    if 'pubpub' in url and '.xml' not in url:
+                        url = re.search(r"jats&quot;,&quot;url&quot;:&quot;(.*?.xml)", r.text).group(1)
+                        r = session.get(url)
                     open(dl_path + fn, 'wb').write(r.content)
+                    time.sleep(0.25) # delay querying resources
                 else:
                     url, title = pub['url'], pub['title']
                     print(f'\nFailed to download from {url} the paper: {title}'
                         '\nRun the script again to attempt re-downloading the file.'
                         f'\nIf the problem persists, download the file manually and save it in resources/corrected as {fn}.\n')
                     quit()
-        except:
-            print("No internet!")
+        except Exception as e:
+            print("Error downloading: ", e)
 
-    # Check for pdfs
-    print('Checking for PDFs and XMLs!')
-    xmls = os.listdir(xml_src)
-    pdfs = os.listdir(pdf_src)
-    jats = os.listdir(jats_src)
-
-    thread_local = threading.local()
-
-    pdf_dict, jats_dict = {}, {}
-    for pub in bib_db:
-        if 'pubpub' in pub['url']:
-            jats_dict[f"nime{pub['year']}_{pub['article-number']}.xml"] = pub['url']
-        else:
-            pdf_dict[pub['url'].split('/')[-1]] = pub['url']
-
-    for files, f_dict in [(pdfs, pdf_dict), (jats, jats_dict)]:
-        # Files that aren't downloaded yet
-        missing_files = list(set(f_dict.keys()) - set(files))
-        for f in missing_files:
-            del f_dict[f]
+    def multithread_dls(files, f_dict, dl_path):
+        # Download XML and PDFs that don't exist yet
+        missing_files = set(f_dict.keys()) - set(files)
+        f_dict = {k:v for k, v in f_dict.items() if k in missing_files}
 
         # Multithread downloads - with urls (values) and fn's (keys)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            executor.map(download_url, f_dict.values(), f_dict.keys())
+            executor.map(download_url, f_dict.values(), f_dict.keys(), [dl_path]*len(f_dict))
 
-    check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in pdf_dict.keys()]
-    missing_xmls = list(set(check_xmls) - set(xmls))
-    missing_jats = list(set(jats_dict.keys()) - set(xmls))
+    xmls = os.listdir(xml_src)
+    thread_local = threading.local()
 
-    if len(missing_jats) > 0:
-        print(f'Found {len(missing_jats)} PubPub XMLs unconverted - converting!')
-        generate_teis(missing_jats)
+    if jats:
+        print('\nChecking for missing PubPub XMLs!')
+        jats = os.listdir(jats_src)
+        jats_dict = {}
+
+        for pub in bib_db:
+            jats_dict[f"nime{pub['year']}_{pub['article-number']}.xml"] = pub['url']
+
+        multithread_dls(jats, jats_dict, jats_src)
+
+        missing_jats = list(set(jats_dict.keys()) - set(xmls))
+
+        if len(missing_jats) > 0:
+            print(f'Found {len(missing_jats)} PubPub XMLs unconverted - converting!')
+            generate_teis(missing_jats)
     
-    if len(missing_xmls) > 0:
-        print(f'Found {len(missing_xmls)} PDFs unconverted - converting!')
-        generate_grobid(overwrite)
     else:
-        answer = boolify(input(f'All XMLs exist - convert anyway? (y/N): '))
-        if answer:
-            generate_grobid(True)
+        print('\nChecking for missing PDFs!')
+        pdfs = os.listdir(pdf_src)
+        pdf_dict = {}
+
+        for pub in bib_db:
+            pdf_dict[pub['url'].split('/')[-1]] = pub['url']
+        
+        multithread_dls(pdfs, pdf_dict, pdf_src)
+        
+        check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in pdf_dict.keys()]
+        missing_xmls = list(set(check_xmls) - set(xmls))
+
+        if len(missing_xmls) > 0:
+            print(f'Found {len(missing_xmls)} PDFs unconverted - converting!')
+            generate_grobid(overwrite)
+        else:
+            answer = boolify(input(f'All XMLs exist - convert anyway? (y/N): '))
+            if answer:
+                generate_grobid(True)
 
 
 def generate_teis(missing_jats):
