@@ -42,7 +42,7 @@ import pa_print
 from pa_utils import csv_save, calculate_carbon, fill_empty, doc_quality, post_processing, boolify
 from pa_request import request_location, request_scholar, request_uni
 from pa_extract import extract_text, extract_author_info, extract_grobid
-from pa_load import prep, load_unidomains, load_bibtex, extract_bibtex, check_grobid
+from pa_load import prep, load_unidomains, load_bibtex, extract_bibtex, check_xml
 
 
 # Variables/paths
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     # * Loop here for Grobid/PDF population
     if args.grobid:
-        check_grobid(bib_db, True)
+        check_xml(bib_db, True)
 
     # * Parse data through pdfs
     print('\nExtracting and parsing publication data...')
@@ -101,7 +101,9 @@ if __name__ == "__main__":
                 author_info = extract_author_info(doc, pub)
             else:
                 author_info = []
-
+        else:
+            author_info = []
+            
         # Extract doc from Grobid
         doc = extract_grobid(pub, bib_db, iterator)
         doc_quality(doc, pub, 'grobid')

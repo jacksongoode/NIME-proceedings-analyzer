@@ -59,7 +59,7 @@ import pikepdf
 
 # Helper
 import pa_print
-from pa_load import check_grobid
+from pa_load import check_xml
 
 # Variables
 pdf_src = os.getcwd()+'/cache/pdf/'
@@ -351,9 +351,12 @@ def extract_grobid(pub, bib_db, iterator):
         return grob_text
 
     else: # No XML - populate
-        pa_print.tprint('\nGrobid file does not exist for paper!')
+        pa_print.tprint('\nGrobid XML does not exist for paper!')
+        if 'tei' not in xml_name:
+            check_xml(bib_db, jats=True)
+        else:
+            check_xml(bib_db)
         iterator.clear()
-        check_grobid(bib_db)
         iterator.refresh()
 
 def extract_author_info(doc, pub):
