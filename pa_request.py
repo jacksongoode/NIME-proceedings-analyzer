@@ -200,7 +200,6 @@ def request_location(author_info, args, pub):
             location_query = ' '.join(info_lines[cut_line-1:cut_line])
             if len([line for line in location_query if line.isdigit()]) > 8: # look for tele #
                 location_query = ' '.join(info_lines[cut_line-2:cut_line-1]) # take line higher if telephone
-
             query_origin = 'raw author block'
 
         else:
@@ -211,7 +210,6 @@ def request_location(author_info, args, pub):
         pa_print.tprint(f'\nLooking for: {location_query}')
         pub['author loc queries'].append(location_query)
         pub['author query origins'].append(query_origin)
-
         query_location(location_query, query_type, pub)
 
 def query_location(location_query, query_type, pub): # 'query_type is now only used to print status
@@ -221,7 +219,7 @@ def query_location(location_query, query_type, pub): # 'query_type is now only u
             location_cache = orjson.loads(fp.read())
     except FileNotFoundError:
         pa_print.tprint('\nCreating new location cache!')
-        location_cache = {}
+        location_cache = {'N/A': 'N/A'}
 
     # Not cached
     if location_query not in location_cache:

@@ -56,6 +56,7 @@ unused_cols = ['ID', 'ENTRYTYPE', 'doi', 'annote', 'booktitle', 'editor', 'date'
                'presentation-video', 'urlsuppl1', 'urlsuppl2', 'urlsuppl3', 'volume']
 pdf_src = os.getcwd()+'/cache/pdf/'
 xml_src = os.getcwd()+'/cache/xml/'
+jats_src = os.getcwd()+'/cache/jats/'
 
 
 def prep(args):
@@ -65,11 +66,11 @@ def prep(args):
         if answer:
             shutil.rmtree('./cache')
         else:
-            for p in ['text', 'xml', 'bibtex', 'json']:
+            for p in ['text', 'xml', 'bibtex', 'json', 'jats']:
                 shutil.rmtree(f'./cache/{p}')
 
     # Generate cache folders
-    for folder in ['./cache/pdf/', './cache/xml/',
+    for folder in ['./cache/pdf/', './cache/xml/', './cache/jats/',
                    './cache/text/grobid/', './cache/text/miner/',
                    './cache/bibtex/', './cache/json/',
                    './output/', './resources/corrected/']:
@@ -142,7 +143,7 @@ def extract_bibtex(bib_db, args):
     return bib_db
 
 
-def check_grobid(bib_db, overwrite=False):
+def check_xml(bib_db, jats=False, overwrite=False):
     ''' Repopulate Grobid files, downloads PDFs if needed
 
     :bib_db from bibtex file
@@ -152,64 +153,99 @@ def check_grobid(bib_db, overwrite=False):
             thread_local.session = requests.Session()
         return thread_local.session
 
-    def download_url(url, dl_path=pdf_src, fn=None):
-        if fn is not None:
-            pdf_name = fn
-        else:
-            pdf_name = url.split('/')[-1]
-
+    def download_url(url, fn, dl_path):
         session = get_session()
 
-        print(f'Downloading {url}...')
-        with session.get(url) as r:
-            if r.status_code == requests.codes.ok:
-                # scan pubpub page for xml file
-                if 'pubpub' in url and '.pdf' not in url:
-                    pubpub_url = re.search(r"pdf&quot;,&quot;url&quot;:&quot;(.*?.pdf)", r.text).group(1)
-                    pub = [pub for pub in bib_db if url in pub['url']][0]
-                    fn = f"nime{pub['year']}_{pub['article-number']}.pdf"
-                    download_url(pubpub_url, fn=fn)
-                    return
-                open(dl_path + pdf_name, 'wb').write(r.content)
-            else:
-                url, title = pub['url'], pub['title']
-                print(f'\nFailed to download from {url} the paper: {title}'
-                      '\nRun the script again to attempt re-downloading the file.'
-                      f'\nIf the problem persists, download the file manually and save it in resources/corrected as {pdf_name}.\n')
-                quit()
+        try:
+            with session.get(url) as r:
+                print(f'Downloading {url}...')
+                if r.status_code == requests.codes.ok:
+                    # Redirect if PubPub url
+                    if 'pubpub' in url and '.xml' not in url:
+                        url = re.search(r"jats&quot;,&quot;url&quot;:&quot;(.*?.xml)", r.text).group(1)
+                        r = session.get(url)
+                    open(dl_path + fn, 'wb').write(r.content)
+                    time.sleep(0.25) # delay querying resources
+                else:
+                    url, title = pub['url'], pub['title']
+                    print(f'\nFailed to download from {url} the paper: {title}'
+                        '\nRun the script again to attempt re-downloading the file.'
+                        f'\nIf the problem persists, download the file manually and save it in resources/corrected as {fn}.\n')
+                    quit()
+        except Exception as e:
+            print("Error downloading: ", e)
 
-    # Check for pdfs
-    print('Checking PDFs and converting to XML!')
+    def multithread_dls(files, f_dict, dl_path):
+        # Download XML and PDFs that don't exist yet
+        missing_files = set(f_dict.keys()) - set(files)
+        f_dict = {k:v for k, v in f_dict.items() if k in missing_files}
+
+        # Multithread downloads - with urls (values) and fn's (keys)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            executor.map(download_url, f_dict.values(), f_dict.keys(), [dl_path]*len(f_dict))
+
     xmls = os.listdir(xml_src)
-    pdfs = os.listdir(pdf_src)
-
     thread_local = threading.local()
 
-    url_dict = {}
-    for pub in bib_db:
-        if 'pubpub' in pub['url']:
-            url_dict[f"nime{pub['year']}_{pub['article-number']}.pdf"] = pub['url']
-        else:
-            url_dict[pub['url'].split('/')[-1]] = pub['url']
+    if jats:
+        print('\nChecking for missing PubPub XMLs!')
+        jats = os.listdir(jats_src)
+        jats_dict = {}
 
-    # pdfs that aren't downloaded yet
-    dl_files = list(set(url_dict.keys()) - set(pdfs))
-    dl_urls = [url_dict[f] for f in dl_files]
+        for pub in bib_db:
+            jats_dict[f"nime{pub['year']}_{pub['article-number']}.xml"] = pub['url']
 
-    # Multithread downloads
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        executor.map(download_url, dl_urls)
+        multithread_dls(jats, jats_dict, jats_src)
 
-    check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in url_dict.keys()]
-    bad_xmls = list(set(check_xmls) - set(xmls))
+        missing_jats = list(set(jats_dict.keys()) - set(xmls))
 
-    if len(bad_xmls) > 0:
-        print(f'Found {len(bad_xmls)} PDFs unconverted - converting!')
-        generate_grobid(overwrite)
+        if len(missing_jats) > 0:
+            print(f'Found {len(missing_jats)} PubPub XMLs unconverted - converting!')
+            generate_teis(missing_jats)
+    
     else:
-        answer = boolify(input(f'All XMLs exist - convert anyway? (y/N): '))
-        if answer:
-            generate_grobid(True)
+        print('\nChecking for missing PDFs!')
+        pdfs = os.listdir(pdf_src)
+        pdf_dict = {}
+
+        for pub in bib_db:
+            pdf_dict[pub['url'].split('/')[-1]] = pub['url']
+        
+        multithread_dls(pdfs, pdf_dict, pdf_src)
+        
+        check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in pdf_dict.keys()]
+        missing_xmls = list(set(check_xmls) - set(xmls))
+
+        if len(missing_xmls) > 0:
+            print(f'Found {len(missing_xmls)} PDFs unconverted - converting!')
+            generate_grobid(overwrite)
+        else:
+            answer = boolify(input(f'All XMLs exist - convert anyway? (y/N): '))
+            if answer:
+                generate_grobid(True)
+
+
+def generate_teis(missing_jats):
+    # Put xmls in a temp dur for batch conversion
+    temp_dir = os.getcwd()+'/cache/temp_jats/'
+    for f in missing_jats:
+        os.renames(jats_src+f, temp_dir+f)
+    try:
+        print('\nConverting XMLs from JAR to TEI!')
+        oschmod.set_mode('./resources/Pub2TEI/Samples/saxon9he.jar', '+x')
+        xslt_args = ['--parserFeature?uri=http%3A//apache.org/xml/features/nonvalidating/load-external-dtd:false',
+                    '-dtd:off', '-a:off', '-expand:off',
+                    '-xsl:./Stylesheets/Publishers.xsl',
+                    f'-s:{temp_dir}', 
+                    f'-o:{xml_src}']
+        subprocess.run(['java', '-jar', './Samples/saxon9he.jar', *xslt_args], cwd=f'./resources/Pub2TEI')
+    except Exception as e:
+        print('An error occured: ', e)
+        quit()
+
+    # Return xmls to jar dir
+    for f in missing_jats:
+        os.renames(temp_dir+f, jats_src+f)
 
 
 def generate_grobid(overwrite=False):
