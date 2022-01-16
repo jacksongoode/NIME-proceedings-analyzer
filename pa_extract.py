@@ -143,6 +143,8 @@ def extract_bib(pub, args):
                 last = 'Popel'
             elif (first == 'Misra' and last == 'Ananya'):
                 last = 'Misra'
+            elif (first == 'Alfonso' and last == 'Carrillo'):
+                last = 'Perez'
 
         pub['author names'].append((first, last))
 
