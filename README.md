@@ -16,7 +16,7 @@ The tool is includes four scripts:
 
 ### Requirements
 
-The NIME PA requires Python 3.7 or higher.
+The NIME PA requires Python 3.7 (recommended) or higher.
 
 Install required packages:
 ```
