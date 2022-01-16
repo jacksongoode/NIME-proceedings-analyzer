@@ -205,7 +205,7 @@ def download_xml(xml_path, pub):
     url = pub['url']
     r = requests.get(url, allow_redirects=True)
     url = re.search(r"jats&quot;,&quot;url&quot;:&quot;(.*?.xml)", r.text).group(1)
-    
+
     r = requests.get(url, allow_redirects=True)
     open(jats_src, 'wb').write(r.content)
 
@@ -214,8 +214,8 @@ def extract_text(pub):
 
     :publication (article) from database
     '''
-    fn = pub['url'].split('/')[-1]
-    pdf_path = pdf_src + fn
+    pdf_fn = pub['url'].split('/')[-1]
+    pdf_path = pdf_src + pdf_fn
 
     # Allows for override of corrupted pdfs
     if os.path.isfile(pdf_path):
@@ -227,7 +227,7 @@ def extract_text(pub):
     if pub['page count'] == 'N/A':
         pdf = open(pdf_path, 'rb')
         check = False
-        while True:
+        while True: # try once
             try:
                 parser = PDFParser(pdf)
                 document = PDFDocument(parser)
@@ -244,7 +244,7 @@ def extract_text(pub):
 
         pub['page count'] = resolve1(document.catalog['Pages'])['Count']
 
-    fn = fn.split('.')[0]
+    fn = pdf_fn.split('.')[0]
     miner_text_file = f'{text_src}miner/miner_{fn}.txt'
 
     # Read miner text if exists
@@ -254,7 +254,7 @@ def extract_text(pub):
             return doc
 
     else: # if not, make them
-        pa_print.tprint(f'\nExtracting: {pdf_name}')
+        pa_print.tprint(f'\nExtracting: {pdf_fn}')
 
         laparams = LAParams()
         setattr(laparams, 'all_texts', True)
