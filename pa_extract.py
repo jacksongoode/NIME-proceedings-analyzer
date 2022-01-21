@@ -51,7 +51,6 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 
 from gensim.parsing.preprocessing import STOPWORDS
 
-from lxml import etree
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 import orjson
@@ -345,7 +344,8 @@ def extract_grobid(pub, bib_db, iterator):
             grob_text = []
             grob_body = soup.body.find_all('p')
             for p in grob_body:
-                grob_text.append(elem_text(p))
+                p = re.sub(r'\s+', ' ', elem_text(p)).strip()
+                grob_text.append(p)
             grob_text = str(grob_text)
             with open(grob_text_file, 'w') as f:
                 f.write(grob_text)
@@ -354,7 +354,7 @@ def extract_grobid(pub, bib_db, iterator):
 
     else: # No XML - populate
         pa_print.tprint('\nGrobid XML does not exist for paper!')
-        if 'tei' not in xml_name:
+        if 'pubpub' in pub['url']:
             check_xml(bib_db, jats=True)
         else:
             check_xml(bib_db)

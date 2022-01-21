@@ -67,9 +67,9 @@ def load_bib_csv(filepath, selectedyears):
             'text author unis': generic,
             'countries': generic,
             'continents': generic,
-            'institutes': generic}
+            'institutions': generic}
 
-    try: # accomodate regional delimiters
+    try: # accommodate regional delimiters
         bib_df = pd.read_csv(filepath, converters=conv)
     except:
         bib_df = pd.read_csv(filepath, converters=conv, sep=';')
@@ -461,8 +461,8 @@ def stats_affiliation(bib_df, conf_df):
 
     outtxt = ''
 
-    auth_df = pd.DataFrame(index=range(bib_df['author count'].sum()), columns=['year','name','citations','institute','country','continent'])
-    mixed_df = pd.DataFrame(index=bib_df.index, columns=['year','institute','country','continent'])
+    auth_df = pd.DataFrame(index=range(bib_df['author count'].sum()), columns=['year','name','citations','institutions','country','continent'])
+    mixed_df = pd.DataFrame(index=bib_df.index, columns=['year','institutions','country','continent'])
     j = 0
     for idx, pub in bib_df.iterrows():
         author_count = pub['author count']
@@ -470,14 +470,14 @@ def stats_affiliation(bib_df, conf_df):
             auth_df.loc[j,'year']= pub['year']
             auth_df.loc[j,'name'] = pub['author names'][i][0] + ' ' + pub['author names'][i][1]
             auth_df.loc[j,'citations'] = pub['citation count']
-            auth_df.loc[j,'institute'] = pub['institutes'][i]
+            auth_df.loc[j,'institutions'] = pub['institutions'][i]
             auth_df.loc[j,'country'] = pub['countries'][i]
             auth_df.loc[j,'continent'] = pub['continents'][i]
             j = j + 1
-        if len(Counter(pub['institutes']).keys()) > 1:
-            mixed_df.loc[idx,'institute'] = True
+        if len(Counter(pub['institutions']).keys()) > 1:
+            mixed_df.loc[idx,'institutions'] = True
         else:
-            mixed_df.loc[idx,'institute'] = False
+            mixed_df.loc[idx,'institutions'] = False
         if len(Counter(pub['countries']).keys()) > 1:
             mixed_df.loc[idx,'country'] = True
         else:
@@ -489,34 +489,34 @@ def stats_affiliation(bib_df, conf_df):
         mixed_df.loc[idx,'year'] = pub['year']
 
     # when counting - 1 removes the N/A
-    number_of_institutes = auth_df['institute'].nunique() - 1
+    number_of_institutions = auth_df['institutions'].nunique() - 1
     number_of_countries = auth_df['country'].nunique() - 1
     number_of_continents = auth_df['continent'].nunique() - 1
 
-    number_of_institutes_per_year = auth_df.groupby(['year'])['institute'].nunique() - 1
+    number_of_institutions_per_year = auth_df.groupby(['year'])['institutions'].nunique() - 1
     number_of_countries_per_year = auth_df.groupby(['year'])['country'].nunique() - 1
     number_of_continents_per_year = auth_df.groupby(['year'])['continent'].nunique() - 1
 
-    top_institutes_by_authors = auth_df.groupby(['institute']).size().sort_values(ascending=False).head(40)
+    top_institutions_by_authors = auth_df.groupby(['institutions']).size().sort_values(ascending=False).head(40)
     countries_by_authors = auth_df.groupby(['country']).size().sort_values(ascending=False)
     continents_by_authors = auth_df.groupby(['continent']).size().sort_values(ascending=False)
 
-    top_institutes_by_authorcitations = auth_df.groupby(['institute'])['citations'].sum().sort_values(ascending=False).head(40)
+    top_institutions_by_authorcitations = auth_df.groupby(['institutions'])['citations'].sum().sort_values(ascending=False).head(40)
     countries_by_authorcitations = auth_df.groupby(['country'])['citations'].sum().sort_values(ascending=False)
     continents_by_authorcitations = auth_df.groupby(['continent'])['citations'].sum().sort_values(ascending=False)
 
-    perc_mixed_institute_papers_fraction = 100 * mixed_df[mixed_df['institute'] == True].shape[0] / mixed_df.shape[0]
+    perc_mixed_institute_papers_fraction = 100 * mixed_df[mixed_df['institutions'] == True].shape[0] / mixed_df.shape[0]
     perc_mixed_country_papers_fraction = 100 * mixed_df[mixed_df['country'] == True].shape[0] / mixed_df.shape[0]
     perc_mixed_continent_papers_fraction = 100 * mixed_df[mixed_df['continent'] == True].shape[0] / mixed_df.shape[0]
 
-    temp = mixed_df[mixed_df['institute'] == True]
+    temp = mixed_df[mixed_df['institutions'] == True]
     perc_mixed_institute_papers_fraction_per_year = 100 * temp.groupby(['year']).size() / mixed_df.groupby(['year']).size()
     temp = mixed_df[mixed_df['country'] == True]
     perc_mixed_country_papers_fraction_per_year = 100 * temp.groupby(['year']).size() / mixed_df.groupby(['year']).size()
     temp = mixed_df[mixed_df['continent'] == True]
     perc_mixed_continent_papers_fraction_per_year = 100 * temp.groupby(['year']).size() / mixed_df.groupby(['year']).size()
 
-    top_institutes_by_year = auth_df.groupby(['year'])['institute'].value_counts()
+    top_institutions_by_year = auth_df.groupby(['year'])['institutions'].value_counts()
     top_countries_by_year = auth_df.groupby(['year'])['country'].value_counts()
     top_continents_by_year = auth_df.groupby(['year'])['continent'].value_counts()
 
@@ -530,7 +530,7 @@ def stats_affiliation(bib_df, conf_df):
         tot = len(auth_df[(auth_df['year'] == y)].index)
         perc_authors_diff_country_continent.at[y,'%_same_continent_as_conference'] = 100 * same/tot
 
-    outtxt += '\nNumber of institutes %d' % (number_of_institutes - 1)
+    outtxt += '\nNumber of institutions %d' % (number_of_institutions - 1)
     outtxt += '\nNumber of countries %d' % (number_of_countries - 1)
     outtxt += '\nNumber of continents %d' % (number_of_continents - 1)
     outtxt += '\nPercentage paper author different institute %f' % perc_mixed_institute_papers_fraction
@@ -538,20 +538,20 @@ def stats_affiliation(bib_df, conf_df):
     outtxt += '\nPercentage paper author different coutinent %f' % perc_mixed_continent_papers_fraction
 
     with pd.ExcelWriter('./output/affiliations.xlsx') as writer:
-        number_of_institutes_per_year.to_excel(writer, sheet_name='Num. of auth. instit. per year', header=False)
+        number_of_institutions_per_year.to_excel(writer, sheet_name='Num. of auth. instit. per year', header=False)
         number_of_countries_per_year.to_excel(writer, sheet_name='Num. of auth. countr. per year', header=False)
         number_of_continents_per_year.to_excel(writer, sheet_name='Num. of auth. contin. per year', header=False)
-        top_institutes_by_authors.to_excel(writer, sheet_name='Top instit. by num authors', header=False)
+        top_institutions_by_authors.to_excel(writer, sheet_name='Top instit. by num authors', header=False)
         countries_by_authors.to_excel(writer, sheet_name='Dist. count. by num authors', header=False)
         continents_by_authors.to_excel(writer, sheet_name='Dist. contin. by num authors', header=False)
-        top_institutes_by_authorcitations.to_excel(writer, sheet_name='Top instit. by auth. cit.', header=False)
+        top_institutions_by_authorcitations.to_excel(writer, sheet_name='Top instit. by auth. cit.', header=False)
         countries_by_authorcitations.to_excel(writer, sheet_name='Dist. countr. by auth. cit.', header=False)
         continents_by_authorcitations.to_excel(writer, sheet_name='Dist. contin. by auth. cit.', header=False)
         perc_mixed_institute_papers_fraction_per_year.to_excel(writer, sheet_name='% paper mixed instit. per year', header=False)
         perc_mixed_country_papers_fraction_per_year.to_excel(writer, sheet_name='% paper mixed countr. per year', header=False)
         perc_mixed_continent_papers_fraction_per_year.to_excel(writer, sheet_name='% paper mixed contin. per year', header=False)
         perc_authors_diff_country_continent.to_excel(writer, sheet_name='% auth. from out conf. per year', header=True)
-        top_institutes_by_year.to_excel(writer, sheet_name='Top instit. by year', header=False)
+        top_institutions_by_year.to_excel(writer, sheet_name='Top instit. by year', header=False)
         top_countries_by_year.to_excel(writer, sheet_name='Top count. by year', header=False)
         top_continents_by_year.to_excel(writer, sheet_name='Top contin. by year', header=False)
 

@@ -202,7 +202,7 @@ def boolify(ans, default=False):
     return ans
 
 def post_processing(pub):
-    col_countries, col_continents, col_institutes = [], [], []
+    col_countries, col_continents, col_institutions = [], [], []
     empty = [float('nan'), 'N/A']
     full_text = ''
 
@@ -222,13 +222,13 @@ def post_processing(pub):
     pub['continents'] = continents
 
     # Check for unis and organisations
-    institutes = []
+    institutions = []
     for _, (uni, org) in enumerate(zip(pub['grobid author unis'], pub['grobid organisations'])):
         if uni in empty: # if uni is absent and there is an org present for that index
-            institutes.append(org)
+            institutions.append(org)
         else:
-            institutes.append(', '.join(uni)) # make unique string from (uni, location)
-    pub['institutes'] = institutes # this is a union list to derive location using uni or organisation
+            institutions.append(', '.join(uni)) # make unique string from (uni, location)
+    pub['institutions'] = institutions # this is a union list to derive location using uni or organisation
 
     # Iterate through article and get raw text
     if 'pubpub' in pub['url']:

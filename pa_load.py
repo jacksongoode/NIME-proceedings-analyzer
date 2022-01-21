@@ -51,6 +51,8 @@ from pa_utils import doc_check, fill_empty, boolify
 # Variables
 bibtex_url = 'https://raw.githubusercontent.com/NIME-conference/NIME-bibliography/master/paper_proceedings/nime_papers.bib'
 unidomains_url = 'https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json'
+pub2tei_url = 'https://github.com/kermitt2/Pub2TEI/archive/refs/heads/master.zip'
+
 unused_cols = ['ID', 'ENTRYTYPE', 'doi', 'annote', 'booktitle', 'editor', 'date', 'date-modified',
                'editor', 'isbn', 'issn', 'month', 'publisher', 'rating', 'series', 'track', 'pages',
                'presentation-video', 'urlsuppl1', 'urlsuppl2', 'urlsuppl3', 'volume']
@@ -73,19 +75,27 @@ def prep(args):
     for folder in ['./cache/pdf/', './cache/xml/', './cache/jats/',
                    './cache/text/grobid/', './cache/text/miner/',
                    './cache/bibtex/', './cache/json/',
-                   './output/', './resources/corrected/']:
+                   './output/', './resources/corrected/', '.resources/Pub2TEI']:
         os.makedirs(os.path.dirname(f'{folder}'), exist_ok=True)
 
     # Copy corrected into pdf
     for f in [f for f in os.listdir('./resources/corrected') if f.endswith('.pdf')]:
         shutil.copy(os.path.join('./resources/corrected', f), './cache/pdf')
 
+    #Pub2TEI download
+    if not os.path.exists('./resources/Pub2TEI/Samples/saxon9he.jar'):
+        print('Downloading Pub2TEI utility...')
+        zip_path, _ = urllib.request.urlretrieve(pub2tei_url)
+        with zipfile.ZipFile(zip_path, 'r') as f:
+            f.extractall('./resources/')
+        os.rename('./resources/Pub2TEI-master', './resources/Pub2TEI')
+
     # Config load
     if not os.path.exists('./resources/config.json'):
         with open('./resources/config.json', 'w') as fp:
             config = '''{"grobid_server":"localhost","grobid_port":"8070",
-                        "batch_size":1000,"sleep_time":5,"coordinates":["persName",
-                        "figure","ref","biblStruct","formula"]}
+                        "batch_size":1000,"sleep_time":5,
+                        "coordinates":["persName", "figure","ref","biblStruct","formula"]}
                     '''
             fp.write(config)
 
@@ -179,6 +189,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
         # Download XML and PDFs that don't exist yet
         missing_files = set(f_dict.keys()) - set(files)
         f_dict = {k:v for k, v in f_dict.items() if k in missing_files}
+        print(f'\nMissing {len(f_dict)} files - downloading..')
 
         # Multithread downloads - with urls (values) and fn's (keys)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -191,8 +202,9 @@ def check_xml(bib_db, jats=False, overwrite=False):
         print('\nChecking for missing PubPub XMLs!')
         jats = os.listdir(jats_src)
         jats_dict = {}
+        jats_db = [pub for pub in bib_db if 'pubpub' in pub['url']]
 
-        for pub in bib_db:
+        for pub in jats_db:
             jats_dict[f"nime{pub['year']}_{pub['article-number']}.xml"] = pub['url']
 
         multithread_dls(jats, jats_dict, jats_src)
@@ -207,8 +219,9 @@ def check_xml(bib_db, jats=False, overwrite=False):
         print('\nChecking for missing PDFs!')
         pdfs = os.listdir(pdf_src)
         pdf_dict = {}
+        pdf_db = [pub for pub in bib_db if '.pdf' in pub['url']]
 
-        for pub in bib_db:
+        for pub in pdf_db:
             pdf_dict[pub['url'].split('/')[-1]] = pub['url']
         
         multithread_dls(pdfs, pdf_dict, pdf_src)

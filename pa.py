@@ -64,14 +64,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # * Prepare cache, etc.
-    prep(args)
-
     # * Set global print command
     pa_print.init(args)
 
     # * Print notice
     pa_print.lprint()
+
+    # * Prepare cache, etc.
+    prep(args)
 
     # * Load database for email handle to uni matching
     unidomains = load_unidomains(unidomains_path)
