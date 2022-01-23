@@ -49,7 +49,7 @@ The script accepts the following optional arguments:
 -  **-c, --citations**  bypass cache to retrieve new citations
 -  **-g, --grobid**     forces repopulation of Grobid files
 -  **-r, --redo**       deletes cache
--  **-n, --nime**       uses NIME based corrections
+-  **-n, --nime**       uses NIME specific corrections
 
 The first execution of the script will take a significant amount of time, approximately 12 hours.
 The most time consuming operations are: downloading of PDF files associated with the papers, generating xml files associated with the papers and stored in *./cache/xml/* through Grobid, and querying Semantic Scholar (due to their public API limit).
