@@ -161,50 +161,71 @@ def stats_papers(bib_df):
     papers_per_year_cumulative = bib_df['year'].value_counts(sort=False).cumsum()
 
     # full-short-other papers
-    temp = bib_df.loc[bib_df['page count'] > 4]
-    full_papers_per_year = temp['year'].value_counts(sort=False)
+    pre21_bib_df = bib_df.loc[(bib_df['year'] <= 2020)]
+    post21_bib_df = bib_df.loc[(bib_df['year'] >= 2021)]
+
+    temp = pre21_bib_df.loc[(pre21_bib_df['page count'] > 4)]
+    full_papers_per_year_pre21 = temp['year'].value_counts(sort=False)
+    temp = post21_bib_df.loc[(post21_bib_df['word count'] > 3000)]
+    full_papers_per_year_post21 = temp['year'].value_counts(sort=False)
+    full_papers_per_year = pd.concat([full_papers_per_year_pre21,full_papers_per_year_post21], axis=0)
     full_papers_total = full_papers_per_year.sum()
-    temp = bib_df.loc[(bib_df['page count'] > 2) & (bib_df['page count'] <= 4)]
-    short_papers_per_year = temp['year'].value_counts(sort=False)
+
+    temp = pre21_bib_df.loc[(pre21_bib_df['page count'] > 2) & (pre21_bib_df['page count'] <= 4)]
+    short_papers_per_year_pre21 = temp['year'].value_counts(sort=False)
+    temp = post21_bib_df.loc[(post21_bib_df['word count'] > 1500) & (post21_bib_df['word count'] <= 3000)]
+    short_papers_per_year_post21 = temp['year'].value_counts(sort=False)
+    short_papers_per_year = pd.concat([short_papers_per_year_pre21,short_papers_per_year_post21], axis=0)
     short_papers_total = short_papers_per_year.sum()
-    temp = bib_df.loc[(bib_df['page count'] <= 2)]
-    other_papers_per_year = temp['year'].value_counts(sort=False)
+
+    temp = pre21_bib_df.loc[(pre21_bib_df['page count'] <= 2)]
+    other_papers_per_year_pre21 = temp['year'].value_counts(sort=False)
+    temp = post21_bib_df.loc[(post21_bib_df['word count'] <= 1500)]
+    other_papers_per_year_post21 = temp['year'].value_counts(sort=False)
+    other_papers_per_year = pd.concat([other_papers_per_year_pre21,other_papers_per_year_post21], axis=0)
     other_papers_total = other_papers_per_year.sum()
+
     outtxt += '\nTotal Full Papers %d' % full_papers_total
     outtxt += '\nTotal short papers %d' % short_papers_total
     outtxt += '\nTotal Other Papers %d' % other_papers_total
 
     # pages
-    papers_by_pages = bib_df['page count'].value_counts(sort=False)
-    average_paper_length = bib_df['page count'].mean()
-    max_paper_length = bib_df['page count'].max()
-    pages_per_year_average = bib_df.groupby(['year'])['page count'].mean()
-    pages_per_year_total = bib_df.groupby(['year'])['page count'].sum()
-    longest_papers_pages = bib_df.loc[bib_df['page count'] == max_paper_length]['title']
-    outtxt += '\nAverage papers length %f' % average_paper_length
-    outtxt += '\nMax papers length %d' % max_paper_length
+    papers_by_pages_pre21 = pre21_bib_df['page count'].value_counts(sort=False)
+    average_paper_length_pages_pre21 = pre21_bib_df['page count'].mean()
+    max_paper_length_pages_pre21 = pre21_bib_df['page count'].max()
+    pages_per_year_average_pre21 = pre21_bib_df.groupby(['year'])['page count'].mean()
+    pages_per_year_total_pre21 = pre21_bib_df.groupby(['year'])['page count'].sum()
+    longest_papers_pages_pre21 = pre21_bib_df.loc[bib_df['page count'] == max_paper_length_pages_pre21]['title']
+    outtxt += '\nAverage papers length pages pre 2021 %f' % average_paper_length_pages_pre21
+    outtxt += '\nMax papers length pages pre 2021 %d' % max_paper_length_pages_pre21
 
     # word count
     words_total = bib_df['word count'].sum()
     words_average = bib_df['word count'].mean()
 
-    temp = bib_df.loc[bib_df['page count'] > 4]
+    pre20 = pre21_bib_df.loc[(pre21_bib_df['page count'] > 4)]
+    post21 = post21_bib_df.loc[(post21_bib_df['word count'] > 3000)]
+    temp = pd.concat([pre20,post21], axis=0)
     words_average_full = temp['word count'].mean()
 
-    temp = bib_df.loc[(bib_df['page count'] > 2) & (bib_df['page count'] <= 4)]
+    pre20 = pre21_bib_df.loc[(pre21_bib_df['page count'] > 2) & (pre21_bib_df['page count'] <= 4)]
+    post21 = post21_bib_df.loc[(post21_bib_df['word count'] > 1500) & (post21_bib_df['word count'] <= 3000)]
+    temp = pd.concat([pre20,post21], axis=0)
     words_average_short = temp['word count'].mean()
 
-    temp = bib_df.loc[bib_df['page count'] <= 2]
+    pre20 = pre21_bib_df.loc[(pre21_bib_df['page count'] <= 2)]
+    post21 = post21_bib_df.loc[(post21_bib_df['word count'] <= 1500)]
+    temp = pd.concat([pre20,post21], axis=0)
     words_average_other = temp['word count'].mean()
 
-    temp = bib_df.loc[bib_df['page count'] == 6]
-    words_average_sixpages = temp['word count'].mean()
+    temp = pre21_bib_df.loc[pre21_bib_df['page count'] == 6]
+    words_average_sixpages_pre20 = temp['word count'].mean()
 
-    temp = bib_df.loc[bib_df['page count'] == 4]
-    words_average_fourpages = temp['word count'].mean()
+    temp = pre21_bib_df.loc[pre21_bib_df['page count'] == 4]
+    words_average_fourpages_pre20 = temp['word count'].mean()
 
-    temp = bib_df.loc[bib_df['page count'] == 2]
-    words_average_twopages = temp['word count'].mean()
+    temp = pre21_bib_df.loc[pre21_bib_df['page count'] == 2]
+    words_average_twopages_pre20 = temp['word count'].mean()
 
     words_per_year_total = bib_df.groupby(['year'])['word count'].sum()
     words_per_year_average = bib_df.groupby(['year'])['word count'].mean()
@@ -214,16 +235,16 @@ def stats_papers(bib_df):
 
     counts, bins = np.histogram(bib_df['word count'], bins=50)
     center = (bins[:-1] + bins[1:]) / 2
-    papers_by_words = pd.DataFrame(counts, index = center, columns = ['count'])
+    papers_by_word_count = pd.DataFrame(counts, index = center, columns = ['count'])
 
     outtxt += '\nTotal word count %d' % words_total
     outtxt += '\nAverage word count %f' % words_average
     outtxt += '\nAverage word count full papers %f' % words_average_full
     outtxt += '\nAverage word count short papers %f' % words_average_short
     outtxt += '\nAverage word count other papers %f' % words_average_other
-    outtxt += '\nAverage word count 6 pages %f' % words_average_sixpages
-    outtxt += '\nAverage word count 4 pages %f' % words_average_fourpages
-    outtxt += '\nAverage word count 2 pages %f' % words_average_twopages
+    outtxt += '\nAverage word count 6 pages pre 2021 %f' % words_average_sixpages_pre20
+    outtxt += '\nAverage word count 4 pages pre 2021  %f' % words_average_fourpages_pre20
+    outtxt += '\nAverage word count 2 pages pre 2021  %f' % words_average_twopages_pre20
     outtxt += '\nMax papers words %d' % max_paper_words
 
     # citations
@@ -270,17 +291,17 @@ def stats_papers(bib_df):
         full_papers_per_year.to_excel(writer, sheet_name='Full papers per year', header=False)
         short_papers_per_year.to_excel(writer, sheet_name='Short papers per year', header=False)
         other_papers_per_year.to_excel(writer, sheet_name='Other papers per year', header=False)
-        longest_papers_pages.to_excel(writer, sheet_name='Longest papers in pages', header=False)
-        pages_per_year_total.to_excel(writer, sheet_name='Pages total per year', header=False)
-        pages_per_year_average.to_excel(writer, sheet_name='Pages average per year', header=False)
-        papers_by_pages.to_excel(writer, sheet_name='Papers by page length', header=False)
-        longest_papers_words.to_excel(writer, sheet_name='Longest papers', header=False)
+        longest_papers_pages_pre21.to_excel(writer, sheet_name='Longest papers in pages pre 21', header=False)
+        pages_per_year_total_pre21.to_excel(writer, sheet_name='Pages total per year pre 21', header=False)
+        pages_per_year_average_pre21.to_excel(writer, sheet_name='Pages average per year pre 21', header=False)
+        papers_by_pages_pre21.to_excel(writer, sheet_name='Papers by page count pre 21', header=False)
+        longest_papers_words.to_excel(writer, sheet_name='Longest papers in words', header=False)
         words_per_year_total.to_excel(writer, sheet_name='Words total per year', header=False)
         words_per_year_average.to_excel(writer, sheet_name='Words average per year', header=False)
-        papers_by_words.to_excel(writer, sheet_name='Papers by page length', header=False)
+        papers_by_word_count.to_excel(writer, sheet_name='Papers by word count', header=False)
         citations_per_year.to_excel(writer, sheet_name='Cit. per year', header=False)
-        citations_per_year_norm_by_numpaper.to_excel(writer, sheet_name='Cit. per year norm. by #papers', header=False)
-        citations_per_year_norm_by_agepapers.to_excel(writer, sheet_name='Cit. pr yr. norm. by #papers&age', header=False)
+        citations_per_year_norm_by_numpaper.to_excel(writer, sheet_name='Cit. pr yr. norm.by #papers', header=False)
+        citations_per_year_norm_by_agepapers.to_excel(writer, sheet_name='Cit. pr yr. norm.by #papers&age', header=False)
         citations_50perc_per_year.to_excel(writer, sheet_name='50% cit. from papers per year', header=True)
         citations_90perc_per_year.to_excel(writer, sheet_name='90% cit. from papers per year', header=True)
         top_papers_by_citations.to_excel(writer, sheet_name='Top papers by cit.', header=True)

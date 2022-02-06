@@ -97,11 +97,14 @@ The statistics computed by the script are stored in the following files:
 
 Overall statistics and are included in the .txt files. Detailed statistic per year, paper, author, institution, country, continent, etc., are included in the .xlsx files.
 
+Figures related to page count are reported only for papers before 2021. Thereafter, with the new publication format (PupPub), paper length is measured only in terms of word count.
+
 In the .xlsx files, sheet names are limited to 31 characters and the following abbreviations are used:
 ```
 avg. = average
 num. = number
 cit. = citations
+pr. = per
 yr. = year
 norm. = normalized
 auth. = author
