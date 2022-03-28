@@ -18,7 +18,7 @@
 # publication, please acknowledge its authors by adding a reference to:
 
 # J. Goode, S. Fasciani, A Toolkit for the Analysis of the NIME Proceedings
-# Archive, submitted to 2022 International Conference on New Interfaces for
+# Archive, in 2022 International Conference on New Interfaces for
 # Musical Expression, Auckland, New Zealand, 2022.
 
 # Native
@@ -183,7 +183,7 @@ def gen_topic_plots(corpus, lda_model, year_dict, year_list, year_start, year_en
                             year_top[1] = float(year_top[1]) + float(top[1])
                             year_dict[j][k] = tuple(year_top)
 
-    # Weight the topic values by numbers of papers submitted each year
+    # Weight the topic values by numbers of papers published each year
     for key, val in year_dict.items():
         for index, j in enumerate(val):
             j = list(j)

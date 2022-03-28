@@ -18,7 +18,7 @@
 # publication, please acknowledge its authors by adding a reference to:
 
 # J. Goode, S. Fasciani, A Toolkit for the Analysis of the NIME Proceedings
-# Archive, submitted to 2022 International Conference on New Interfaces for
+# Archive, in 2022 International Conference on New Interfaces for
 # Musical Expression, Auckland, New Zealand, 2022.
 
 # Native
@@ -214,7 +214,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
         if len(missing_jats) > 0:
             print(f'Found {len(missing_jats)} PubPub XMLs unconverted - converting!')
             generate_teis(missing_jats)
-    
+
     else:
         print('\nChecking for missing PDFs!')
         pdfs = os.listdir(pdf_src)
@@ -223,9 +223,9 @@ def check_xml(bib_db, jats=False, overwrite=False):
 
         for pub in pdf_db:
             pdf_dict[pub['url'].split('/')[-1]] = pub['url']
-        
+
         multithread_dls(pdfs, pdf_dict, pdf_src)
-        
+
         check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in pdf_dict.keys()]
         missing_xmls = list(set(check_xmls) - set(xmls))
 
@@ -249,7 +249,7 @@ def generate_teis(missing_jats):
         xslt_args = ['--parserFeature?uri=http%3A//apache.org/xml/features/nonvalidating/load-external-dtd:false',
                     '-dtd:off', '-a:off', '-expand:off',
                     '-xsl:./Stylesheets/Publishers.xsl',
-                    f'-s:{temp_dir}', 
+                    f'-s:{temp_dir}',
                     f'-o:{xml_src}']
         subprocess.run(['java', '-jar', './Samples/saxon9he.jar', *xslt_args], cwd=f'./resources/Pub2TEI')
     except Exception as e:

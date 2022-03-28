@@ -217,6 +217,6 @@ If you use the NIME Proceedings Analyzer or any part of it in any program or
 publication, please acknowledge its authors by adding a reference to:
 
 J. Goode, S. Fasciani, A Toolkit for the Analysis of the NIME Proceedings
-Archive, submitted to 2022 International Conference on New Interfaces for
+Archive, in 2022 International Conference on New Interfaces for
 Musical Expression, Auckland, New Zealand, 2022.
 ```

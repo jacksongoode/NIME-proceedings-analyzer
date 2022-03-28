@@ -18,7 +18,7 @@
 # publication, please acknowledge its authors by adding a reference to:
 
 # J. Goode, S. Fasciani, A Toolkit for the Analysis of the NIME Proceedings
-# Archive, submitted to 2022 International Conference on New Interfaces for
+# Archive, in 2022 International Conference on New Interfaces for
 # Musical Expression, Auckland, New Zealand, 2022.
 
 # Native
@@ -103,7 +103,7 @@ if __name__ == "__main__":
                 author_info = []
         else:
             author_info = []
-            
+
         # Extract doc from Grobid
         doc = extract_grobid(pub, bib_db, iterator)
         doc_quality(doc, pub, 'grobid')
