@@ -175,7 +175,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
                         url = re.search(r"jats&quot;,&quot;url&quot;:&quot;(.*?.xml)", r.text).group(1)
                         r = session.get(url)
                     open(dl_path + fn, 'wb').write(r.content)
-                    time.sleep(0.25) # delay querying resources
+                    time.sleep(0.1) # delay querying to avoid overwhelming
                 else:
                     url, title = pub['url'], pub['title']
                     print(f'\nFailed to download from {url} the paper: {title}'

@@ -645,7 +645,7 @@ def stats_travel(bib_df, conf_df):
     print('\nGenerated travel.txt and travel.xlsx in ./output!')
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Analyse the metadata stored in the output/export.csv')
+    parser = argparse.ArgumentParser(description='Analyze the metadata stored in the output/export.csv')
     parser.add_argument('-n', '--nime', action='store_true', default=False,
                         help='uses NIME based corrections')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,

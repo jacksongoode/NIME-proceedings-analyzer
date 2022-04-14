@@ -314,7 +314,7 @@ def gen_counts(processed_data, year_list):
     pa_print.nprint('\nGenerated topics.xlsx in ./output!')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Analyse a publication given a BibTeX and directory of pdf documents')
+    parser = argparse.ArgumentParser(description='Analyze a publication given a BibTeX and directory of pdf documents')
     parser.add_argument('-n', '--nime', action='store_true', default=False,
                         help='uses NIME based corrections')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,

@@ -50,7 +50,7 @@ bibtex_path = os.getcwd()+'/cache/bibtex/nime_papers.bib'
 unidomains_path = os.getcwd()+'/cache/json/unidomains.json'
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Analyse a publication given a BibTeX and directory of pdf documents')
+    parser = argparse.ArgumentParser(description='Analyze a publication given a BibTeX and directory of pdf documents')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='prints out operations')
     parser.add_argument('-c', '--citations', action='store_true', default=False,
@@ -89,10 +89,9 @@ if __name__ == "__main__":
     iterator = tqdm(bib_db)
     for _, pub in enumerate(iterator):
         pa_print.tprint(f"\n--- Now on: {pub['title']} ---")
-        pbpb = 'pubpub' in pub['url']
 
         # Extract text from pdf if not PubPub
-        if not pbpb:
+        if not 'pubpub' in pub['url']:
             doc = extract_text(pub)
             errored = doc_quality(doc, pub, 'text') # check for errors
 
