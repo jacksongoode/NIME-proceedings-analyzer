@@ -351,7 +351,8 @@ def extract_grobid(pub, bib_db, iterator):
                 f.write(grob_text)
 
         return grob_text
-
+    elif os.path.exists(f"./cache/pdf/unconvertable_pdfs/{xml_name.split('.')[0]}.pdf"):
+        pass
     else: # No XML - populate
         pa_print.tprint('\nGrobid XML does not exist for paper!')
         if 'pubpub' in pub['url']:

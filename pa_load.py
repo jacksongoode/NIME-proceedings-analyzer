@@ -140,6 +140,7 @@ def load_bibtex(path):
 
 
 def extract_bibtex(bib_db, args):
+    '''Extracts publications from a bibtex file'''
     print('\nExtracting BibTeX...')
     for index, pub in enumerate(tqdm(bib_db)):
         pub = defaultdict(lambda: [], pub)  # ? needed?
@@ -206,7 +207,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
 
         for pub in jats_db:
             jats_dict[f"nime{pub['year']}_{pub['article-number']}.xml"] = pub['url']
-
+        
         multithread_dls(jats, jats_dict, jats_src)
 
         missing_jats = list(set(jats_dict.keys()) - set(xmls))
@@ -217,23 +218,47 @@ def check_xml(bib_db, jats=False, overwrite=False):
 
     else:
         print('\nChecking for missing PDFs!')
-        pdfs = os.listdir(pdf_src)
+        # Save unconverted pdfs but merge with unconvertable pdfs
+        unconverted_pdfs = os.listdir(pdf_src)
+        pdfs = unconverted_pdfs
+        
+        bad_pdfs = []
+        if os.path.exists('./cache/pdf/unconvertable_pdfs'):
+            bad_pdfs = os.listdir('./cache/pdf/unconvertable_pdfs')
+            pdfs += bad_pdfs
+        pdfs = [pdf for pdf in pdfs if '.pdf' in pdf]
+
         pdf_dict = {}
         pdf_db = [pub for pub in bib_db if '.pdf' in pub['url']]
 
         for pub in pdf_db:
             pdf_dict[pub['url'].split('/')[-1]] = pub['url']
 
-        multithread_dls(pdfs, pdf_dict, pdf_src)
+        # Download pdfs
+        missing_files = set(pdf_dict.keys()) - set(pdfs)
+        if len(missing_files) > 0:
+            multithread_dls(unconverted_pdfs, pdf_dict, pdf_src)
 
+        # Find what XMLs need to be downloaded
         check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in pdf_dict.keys()]
-        missing_xmls = list(set(check_xmls) - set(xmls))
+        skip_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in bad_pdfs]
+        missing_xmls = list(set(check_xmls) - set(xmls) - set(skip_xmls))
 
         if len(missing_xmls) > 0:
             print(f'Found {len(missing_xmls)} PDFs unconverted - converting!')
             generate_grobid(overwrite)
+
+            # Check for failed xml converts and move
+            xmls = os.listdir(xml_src)
+            missing_xmls = list(set(check_xmls) - set(xmls))
+            unconverted_pdfs = [xml.split('.')[0]+'.pdf' for xml in missing_xmls]
+            print(f'{len(unconverted_pdfs)} PDFs were unable to be converted!')
+            
+            os.makedirs('./cache/pdf/unconvertable_pdfs', exist_ok=True)
+            for pdf in unconverted_pdfs:
+                shutil.move(f'./cache/pdf/{pdf}', f'./cache/pdf/unconvertable_pdfs/{pdf}')
         else:
-            answer = boolify(input(f'All XMLs exist - convert anyway? (y/N): '))
+            answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
             if answer:
                 generate_grobid(True)
 
@@ -266,7 +291,7 @@ def generate_grobid(overwrite=False):
 
     '''
     base = 'https://github.com/kermitt2/grobid/'
-    # get latest Grobid release
+    # Get latest Grobid release
     version = requests.get(base+'releases/latest').url.split('/')[-1]
 
     if not os.path.exists(f'./cache/grobid-{version}'):
