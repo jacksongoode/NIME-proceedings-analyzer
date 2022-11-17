@@ -49,7 +49,7 @@ import pa_extract
 from pa_utils import doc_check, fill_empty, boolify
 
 # Variables
-bibtex_url = 'https://raw.githubusercontent.com/NIME-conference/NIME-bibliography/master/paper_proceedings/nime_papers.bib'
+bibtex_url = 'http://nime-conference.github.io/NIME-bibliography/nime_papers.bib'
 unidomains_url = 'https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json'
 pub2tei_url = 'https://github.com/kermitt2/Pub2TEI/archive/refs/heads/master.zip'
 
