@@ -178,8 +178,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
                     open(dl_path + fn, 'wb').write(r.content)
                     time.sleep(0.1) # delay querying to avoid overwhelming
                 else:
-                    url, title = pub['url'], pub['title']
-                    print(f'\nFailed to download from {url} the paper: {title}'
+                    print(f'\nFailed to download {url}'
                         '\nRun the script again to attempt re-downloading the file.'
                         f'\nIf the problem persists, download the file manually and save it in resources/corrected as {fn}.\n')
                     quit()
