@@ -234,7 +234,7 @@ def extract_text(pub):
                 document = PDFDocument(parser)
             except Exception as e:
                 if check is True:
-                    raise PSSyntaxError(f'{pdf_path} appears to be malformed and qpdf cannot repair it.')
+                    raise PSSyntaxError(f'{pdf_path} appears to be malformed and pdf cannot repair it.')
                 pa_print.tprint(str(e))
                 pa_print.tprint(f'Attempting to repair {pdf_path}')
                 pike = pikepdf.Pdf.open(pdf_path, allow_overwriting_input=True)
