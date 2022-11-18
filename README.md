@@ -183,6 +183,8 @@ The following tips may help to triubleshoot the execution of pa.py:
 
 5. At times, the download of the PDF file may fail but a zero-bytes file is still generated in the folder *./cache/pdf/*. As a consequence, incomplete data related to the paper will be stored in export.csv. After a complete execution of pa.py it is recommended to look for zero-bytes PDF in *./cache/pdf/*, remove them and the associated files created in *./cache/xml/*, *./cache/text/miner/*, and *./cache/text/grobid/*. Then restart pa.py with the same arguments (with exception of those deleting caches and forcing the regeneration of xml files), the new export.csv file with complete information will be generated in a fairly short amount of time.
 
+6. To speed up the download of the PDF files, the analyzer uses multiple threads downloading files in parallel. At times this may fail either generating a long sequence of download error messages, or downloading corrupted PDF files (that will determine an error later on in the analysis process). To avoid this possible problem, set *max_workers=1* at line 195 of *pa_load.py*.
+
 ## Resources
 
 The extracted data from 2001 to 2020 is presented in:  
