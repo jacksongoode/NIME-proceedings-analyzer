@@ -19,4 +19,5 @@ year,place,geocoordinates,country,country_iso3,continent,organizer,reviewers,key
 2018,"Blacksburg, Virginia","37.2296° N, 80.4139° W",United States of America,USA,North America,Virginia Tech,211,4,Onyx,Ashanti,M,R. Benjamin,Knapp ,M,Ikue,Mori,F,Pamela,Z,F
 2019,Porto Alegre,"30.0346° S, 51.2177° W",Brazil,BRA,South America,Federal University of Rio Grande do Sul,260,3,Marcelo Mortensen,Wanderley,M,Eduardo Reck,Miranda,M,Ana María Romano,Gomez,F,,,
 2020,Birmingham,"52.4862° N, 1.8904° W",United Kingdom,GBR,Europe,Royal Birmingham Conservatoire,235,4,,Drake Music Labs,M & F,,Crewdson & Cevanne,M & F,,Dunning & Underwood,M,Lilja Maria ,Asmundsdottir,F
-2021,Shanghai,"31.2304° N, 121.4737° E",China,CHN,Asia,New York University Shanghai,328,3,,Roger Dannenberg,M,,Yann LeCun,M,,AnnMarie Thomas,F,,,
+2021,Shanghai,"31.2304° N, 121.4737° E",China,CHN,Asia,New York University Shanghai,328,3,Roger,Dannenberg,M,Yann,LeCun,M,AnnMarie,Thomas,F,,,
+2022,Auckland (Online),"36.8509° S, 174.7645° E",New Zealand,NZL,Oceania,The University of Auckland,0,3,Khyam,Allami,M,,Rekka Bellum & Devine Lu Linvega,M & F,Sally Jane,Norman,F,,,
