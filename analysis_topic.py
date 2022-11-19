@@ -53,6 +53,7 @@ import numpy as np
 import nltk
 nltk.download('punkt', download_dir='./cache/nltk_data', quiet=True)
 nltk.download('wordnet', download_dir='./cache/nltk_data', quiet=True)
+nltk.download('omw-1.4', download_dir='./cache/nltk_data', quiet=True)
 nltk.data.path.append('./cache/nltk_data/')
 
 # Helper
