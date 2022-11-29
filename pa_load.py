@@ -29,8 +29,6 @@ import zipfile
 import urllib
 import subprocess
 import time
-import socket
-import signal
 import shutil
 import concurrent.futures
 import threading
@@ -46,7 +44,7 @@ from grobid_client.grobid_client import GrobidClient
 # Helper
 import pa_print
 import pa_extract
-from pa_utils import doc_check, fill_empty, boolify
+from pa_utils import boolify
 
 # Variables
 bibtex_url = 'http://nime-conference.github.io/NIME-bibliography/nime_papers.bib'
@@ -275,9 +273,9 @@ def generate_teis(missing_jats):
                     '-xsl:./Stylesheets/Publishers.xsl',
                     f'-s:{temp_dir}',
                     f'-o:{xml_src}']
-        subprocess.run(['java', '-jar', './Samples/saxon9he.jar', *xslt_args], cwd=f'./resources/Pub2TEI')
+        subprocess.run(['java', '-jar', './Samples/saxon9he.jar', *xslt_args], cwd='./resources/Pub2TEI')
     except Exception as e:
-        print('An error occured: ', e)
+        print('An error occured:', e)
         quit()
 
     # Return xmls to jar dir

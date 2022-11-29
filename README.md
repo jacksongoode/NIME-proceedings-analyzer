@@ -4,13 +4,13 @@ The NIME Proceedings Analyzer (PA) is a tool written in python to perform a bibl
 
 The tool is includes four scripts:
 
-1. [pa.py](pa.py) - Generates a rich database from extracted meta-information associated with all [papers published at NIME](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib). The database is saved in the file *./output/export.csv*. It also generates plain body-text files associated with all papers inside the *./cache/* folder.
+1. [pa.py](pa.py) - Generates a rich database from extracted meta-information associated with all [papers published at NIME](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib). The database is saved in the file _./output/export.csv_. It also generates plain body-text files associated with all papers inside the _./cache/_ folder.
 
-2. [analysis_meta.py](analysis_meta.py) - Analyzes the metadata stored in *./output/export.csv*. and produces a pair of .txt and .xlsx files in *./output/* with statistics related to papers, authorship, affiliation, travel.
+2. [analysis_meta.py](analysis_meta.py) - Analyzes the metadata stored in _./output/export.csv_. and produces a pair of .txt and .xlsx files in _./output/_ with statistics related to papers, authorship, affiliation, travel.
 
-3. [analysis_topic.py](analysis_topic.py) - Analyzes keywords and topics in the titles and body text of the papers, generates titles and body-text wordclouds, and computes a visualization of topics modeled with the Latent Dirichlet Allocation (LDA) algorithm. Produced files are saved in *./output/*.
+3. [analysis_topic.py](analysis_topic.py) - Analyzes keywords and topics in the titles and body text of the papers, generates titles and body-text wordclouds, and computes a visualization of topics modeled with the Latent Dirichlet Allocation (LDA) algorithm. Produced files are saved in _./output/_.
 
-4. [analysis_search.py](analysis_search.py) - Searches specific keywords through the papers and it produces a graph with the search terms over the years in a .xlsx file saved in *./output/*.
+4. [analysis_search.py](analysis_search.py) - Searches specific keywords through the papers and it produces a graph with the search terms over the years in a .xlsx file saved in _./output/_.
 
 ## Description & Usage
 
@@ -19,21 +19,26 @@ The tool is includes four scripts:
 The NIME PA requires Python 3.7 (recommended) or higher as well as Java JDK 8 or 11.
 
 Install required packages:
-```
+
+```sh
 pip install -r requirements.txt
 ```
 
 Run the scripts with any additional flags (see below):
-```
+
+```sh
 python pa.py
 python analysis_meta.py
 python analysis_topic.py
 python analysis_search.py
 ```
 
+Note: For Macbooks based on arm, a the library located at `/NIME-proceedings-analyzer/cache/grobid-0.7.2/grobid-home/lib/mac-64/libwapiti.dylib` may not work properly with the device. In this case, a pre-built lib has been made available within `resources/misc/libwapiti.dylib`. This can be overwrite the installed lib if needed.
+
 ## pa.py
 
 This script produces a database which includes an entry for each published NIME paper. For each paper the database includes:
+
 - information extracted from the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib)
 - additional information extracted from the PDF file of the papers using [Grobid](https://github.com/kermitt2/grobid)
 - location and affiliation of the authors, extracted using a combination methods that minimizes errors
@@ -41,18 +46,19 @@ This script produces a database which includes an entry for each published NIME 
 - number of citations received by the paper and key citations extracted from [Semantic Scholar](https://www.semanticscholar.org/)
 - estimated distance and carbon footprint for authors traveling to the conference.
 
-All the materials above are automatically downloaded and extracted as publicly available resources and stored in the local *./cache/* folder. Only the conference locations are provided in the file *./resources/conferences.csv*, which contains information up to and including year 2020. Additionally, the script produces a plain text files of the body for all papers which is stored in *./cache/text/*.
+All the materials above are automatically downloaded and extracted as publicly available resources and stored in the local _./cache/_ folder. Only the conference locations are provided in the file _./resources/conferences.csv_, which contains information up to and including year 2020. Additionally, the script produces a plain text files of the body for all papers which is stored in _./cache/text/_.
 
 The script accepts the following optional arguments:
--  **-h, --help**       show this help message and exit
--  **-v, --verbose**    prints out operations
--  **-c, --citations**  bypass cache to retrieve new citations
--  **-g, --grobid**     forces repopulation of Grobid files
--  **-r, --redo**       deletes cache
--  **-n, --nime**       uses NIME specific corrections
+
+- **-h, --help** show this help message and exit
+- **-v, --verbose** prints out operations
+- **-c, --citations** bypass cache to retrieve new citations
+- **-g, --grobid** forces repopulation of Grobid files
+- **-r, --redo** deletes cache
+- **-n, --nime** uses NIME specific corrections
 
 The first execution of the script will take a significant amount of time, approximately 12 hours.
-The most time consuming operations are: downloading of PDF files associated with the papers, generating xml files associated with the papers and stored in *./cache/xml/* through Grobid, and querying Semantic Scholar (due to their public API limit).
+The most time consuming operations are: downloading of PDF files associated with the papers, generating xml files associated with the papers and stored in _./cache/xml/_ through Grobid, and querying Semantic Scholar (due to their public API limit).
 
 Depending on the arguments, the script may interactively prompt "Yes"/"No" questions to the user in the initial phases of the execution.
 
@@ -68,39 +74,42 @@ Depending on the arguments, the script may interactively prompt "Yes"/"No" quest
 
 ### analysis_meta.py
 
-If facing consistent problems with one or more specific papers (such as download failing, or failing to extract data to PDF file because corrupted or badly encoded), the user can manually download the paper from another source, name it as specified in the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib), and place it in the folder *./resources/corrected/*.
+If facing consistent problems with one or more specific papers (such as download failing, or failing to extract data to PDF file because corrupted or badly encoded), the user can manually download the paper from another source, name it as specified in the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib), and place it in the folder _./resources/corrected/_.
 
-This script analyzes the metadata stored in *./output/export.csv*. and produces statistics related to 1) papers, 2) authorship, 3) affiliation, 4) travel. This script requires the data generated by the pa.py script.
+This script analyzes the metadata stored in _./output/export.csv_. and produces statistics related to 1) papers, 2) authorship, 3) affiliation, 4) travel. This script requires the data generated by the pa.py script.
 
 The script accepts the following optional arguments:
--  **-h, --help**       show this help message and exit
--  **-v, --verbose**    prints out operations
--  **-n, --nime**       uses NIME based corrections
+
+- **-h, --help** show this help message and exit
+- **-v, --verbose** prints out operations
+- **-n, --nime** uses NIME based corrections
 
 **-v**: This argument prints details of the script's progress.
 
 **-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
 
-The analysis can be restricted to specific years through the [custom.csv](#custom.csv) file in the *./resources/* folder.
+The analysis can be restricted to specific years through the [custom.csv](#custom.csv) file in the _./resources/_ folder.
 
 The script interactively prompt "Yes"/"No" questions for computing the statistics associated with the four above-mentioned categories.
 
 The statistics computed by the script are stored in the following files:
-- *./output/papers.txt*
-- *./output/papers.xlsx*
-- *./output/authors.txt*
-- *./output/authors.xlsx*
-- *./output/affiliations.txt*
-- *./output/affiliations.xlsx*
-- *./output/travel.txt*
-- *./output/travel.xlsx*
+
+- _./output/papers.txt_
+- _./output/papers.xlsx_
+- _./output/authors.txt_
+- _./output/authors.xlsx_
+- _./output/affiliations.txt_
+- _./output/affiliations.xlsx_
+- _./output/travel.txt_
+- _./output/travel.xlsx_
 
 Overall statistics and are included in the .txt files. Detailed statistic per year, paper, author, institution, country, continent, etc., are included in the .xlsx files.
 
 Figures related to page count are reported only for papers before 2021. Thereafter, with the new publication format (PupPub), paper length is measured only in terms of word count.
 
 In the .xlsx files, sheet names are limited to 31 characters and the following abbreviations are used:
-```
+
+```text
 avg. = average
 num. = number
 cit. = citations
@@ -123,49 +132,52 @@ instit. = institute
 
 ## analysis_topic.py
 
-This script analyzes topics in the titles and body text of the papers, and it produces 1) statistical and trends on keywords, 2) titles and body-text wordclouds, and 3) a visualization of topics modeled with the Latent Dirichlet Allocation (LDA) algorithm. Produced files are saved in *./output/topics.xlsx*. This script requires the data generated by the pa.py script.
+This script analyzes topics in the titles and body text of the papers, and it produces 1) statistical and trends on keywords, 2) titles and body-text wordclouds, and 3) a visualization of topics modeled with the Latent Dirichlet Allocation (LDA) algorithm. Produced files are saved in _./output/topics.xlsx_. This script requires the data generated by the pa.py script.
 
 The script accepts the following optional arguments:
--  **-h, --help**       show this help message and exit
--  **-v, --verbose**    prints out operations
--  **-n, --nime**       uses NIME based corrections
+
+- **-h, --help** show this help message and exit
+- **-v, --verbose** prints out operations
+- **-n, --nime** uses NIME based corrections
 
 **-v**: This argument prints details of the script's progress.
 
 **-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
 
-The analysis can be highly customized through the *custom.csv* file in the *./resources/* folder.
+The analysis can be highly customized through the _custom.csv_ file in the _./resources/_ folder.
 
 The script interactively prompt "Yes"/"No" questions for computing the data associated with the three above-mentioned categories.
 
-In respect to generating LDA model, a user can choose how many topics the algorithm will attempt to categorize from the relative frequencies of words in the corpus. This will require compiling all text from each paper into a large dictionary and corpus. Both the model and the dict. and corpus are saved in the *./cache/lda* folder Thus, four options are available upon running to create a new model, rebuild dictionary and corpus, do both, or load a prebuilt model.
+In respect to generating LDA model, a user can choose how many topics the algorithm will attempt to categorize from the relative frequencies of words in the corpus. This will require compiling all text from each paper into a large dictionary and corpus. Both the model and the dict. and corpus are saved in the _./cache/lda_ folder Thus, four options are available upon running to create a new model, rebuild dictionary and corpus, do both, or load a prebuilt model.
 
 The script produces the following output files:
-- *./output/topics.xlsx*
-- *./output/topic_occurrence.png*
-- *./output/wordcloud_bodies.png*
-- *./output/wordcloud_titles.png*
-- *./output/lda.html*
+
+- _./output/topics.xlsx_
+- _./output/topic_occurrence.png_
+- _./output/wordcloud_bodies.png_
+- _./output/wordcloud_titles.png_
+- _./output/lda.html_
 
 ## analysis_search.py
 
-This script provides a quick method of searching through the documents with keywords specified in the *./resources/custom.csv*. It produces a graph with the search terms listed over the specified year range.
+This script provides a quick method of searching through the documents with keywords specified in the _./resources/custom.csv_. It produces a graph with the search terms listed over the specified year range.
 
 The script produces the following output files:
-- *./output/keyword_occurrence.png*
-- *./output/keyword_occurrence.xlsx*
+
+- _./output/keyword_occurrence.png_
+- _./output/keyword_occurrence.xlsx_
 
 ### custom.csv
 
-Through this file, located in the *./resources/* folder, it is possible to customize the metadata and topic analysis. The following entries are allowed:
+Through this file, located in the _./resources/_ folder, it is possible to customize the metadata and topic analysis. The following entries are allowed:
 
-- **years**: restrict the analysis to specific years (single cell), or to a a specific range (two adjacent cells). This entry can be repeated across multiple rows for incongruent years. This works with *analysis_meta.py*, *analysis_topic.py*, and *analysis_search.py*.
+- **years**: restrict the analysis to specific years (single cell), or to a a specific range (two adjacent cells). This entry can be repeated across multiple rows for incongruent years. This works with _analysis_meta.py_, _analysis_topic.py_, and _analysis_search.py_.
 
-- **keywords**: specify words (one in each cell) that can be queried for occurrence frequency using *analysis_search.py*.
+- **keywords**: specify words (one in each cell) that can be queried for occurrence frequency using _analysis_search.py_.
 
-- **ignore**: specify words that will be ignored from word counts tallies. This works only with *analysis_topic.py*.
+- **ignore**: specify words that will be ignored from word counts tallies. This works only with _analysis_topic.py_.
 
-- **merge**: specify words that should be merged together, where the left-most cell will be the word that other words (that follow from the right) will be changed to. This works only with *analysis_topic.py*.
+- **merge**: specify words that should be merged together, where the left-most cell will be the word that other words (that follow from the right) will be changed to. This works only with _analysis_topic.py_.
 
 An example of the analysis customization file is available [here](resources/custom_ex.csv).
 
@@ -173,17 +185,17 @@ An example of the analysis customization file is available [here](resources/cust
 
 The following tips may help to triubleshoot the execution of pa.py:
 
-1. A temporary log file *lastrun.log* is generated in the root folder with the details of all operations during the last run of each script. This file is regenerated on each run of each script. It can be used to inspect the results of a last run or if errors had occurred during its execution.
+1. A temporary log file _lastrun.log_ is generated in the root folder with the details of all operations during the last run of each script. This file is regenerated on each run of each script. It can be used to inspect the results of a last run or if errors had occurred during its execution.
 
 2. If you encounter an error that interrupts pa.py, restart the execution with the same arguments (with exception of those deleting caches and forcing the regeneration of xml files). The script is able to quickly resume from the point in which it has been interrupted, and if the nature of the error was temporary (e.g. a download failure due to network problems) the script is should be able to continue the process.
 
-3. If facing consistent problems with one or more specific papers, such as download failing, or failing to extract data from PDF files because corrupted or badly encoded (i.e. associated word count equal to 0 in export.csv), the user can manually download the paper from another source, name it as specified in the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib), and place it in the folder *./resources/corrected/*. It is also recommended to remove the associated files with a similar file name that may have been created in *./cache/xml/*, *./cache/text/miner/*, and *./cache/text/grobid/*.
+3. If facing consistent problems with one or more specific papers, such as download failing, or failing to extract data from PDF files because corrupted or badly encoded (i.e. associated word count equal to 0 in export.csv), the user can manually download the paper from another source, name it as specified in the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib), and place it in the folder _./resources/corrected/_. It is also recommended to remove the associated files with a similar file name that may have been created in _./cache/xml/_, _./cache/text/miner/_, and _./cache/text/grobid/_.
 
-4. When badly encoded papers are not available elsewhere, it is possible to recover them using [OCRmyPDF](https://github.com/jbarlow83/OCRmyPDF), which is a tool to add an OCR text layer to scanned PDF files, but it also works well to replace the badly encoded original text. Often OCRmyPDF significantly increase file size, but files can be further compressed using a third party tool or using the same script and adding compression options at line 16. A limitation of OCRmyPDF is that the generated text layer also includes text found in images. The folder *./resources/corrected/* in the releases includes all papers we fixed or sourced elsewhere due to download or encoding problems.
+4. When badly encoded papers are not available elsewhere, it is possible to recover them using [OCRmyPDF](https://github.com/jbarlow83/OCRmyPDF), which is a tool to add an OCR text layer to scanned PDF files, but it also works well to replace the badly encoded original text. Often OCRmyPDF significantly increase file size, but files can be further compressed using a third party tool or using the same script and adding compression options at line 16. A limitation of OCRmyPDF is that the generated text layer also includes text found in images. The folder _./resources/corrected/_ in the releases includes all papers we fixed or sourced elsewhere due to download or encoding problems.
 
-5. At times, the download of the PDF file may fail but a zero-bytes file is still generated in the folder *./cache/pdf/*. As a consequence, incomplete data related to the paper will be stored in export.csv. After a complete execution of pa.py it is recommended to look for zero-bytes PDF in *./cache/pdf/*, remove them and the associated files created in *./cache/xml/*, *./cache/text/miner/*, and *./cache/text/grobid/*. Then restart pa.py with the same arguments (with exception of those deleting caches and forcing the regeneration of xml files), the new export.csv file with complete information will be generated in a fairly short amount of time.
+5. At times, the download of the PDF file may fail but a zero-bytes file is still generated in the folder _./cache/pdf/_. As a consequence, incomplete data related to the paper will be stored in export.csv. After a complete execution of pa.py it is recommended to look for zero-bytes PDF in _./cache/pdf/_, remove them and the associated files created in _./cache/xml/_, _./cache/text/miner/_, and _./cache/text/grobid/_. Then restart pa.py with the same arguments (with exception of those deleting caches and forcing the regeneration of xml files), the new export.csv file with complete information will be generated in a fairly short amount of time.
 
-6. To speed up the download of the PDF files, the analyzer uses multiple threads downloading files in parallel. At times this may fail either generating a long sequence of download error messages, or downloading corrupted PDF files (that will determine an error later on in the analysis process). To avoid this possible problem, set *max_workers=1* at line 195 of *pa_load.py*.
+6. To speed up the download of the PDF files, the analyzer uses multiple threads downloading files in parallel. At times this may fail either generating a long sequence of download error messages, or downloading corrupted PDF files (that will determine an error later on in the analysis process). To avoid this possible problem, set _max_workers=1_ at line 195 of _pa_load.py_.
 
 ## Resources
 
@@ -198,7 +210,7 @@ In the release section, there are versions of of this repository after the the e
 
 All code in this repository is licensed under [GNU GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.html).
 
-```
+```text
 NIME Proceedings Analyzer (NIME PA)
 Copyright (C) 2022 Jackson Goode, Stefano Fasciani
 

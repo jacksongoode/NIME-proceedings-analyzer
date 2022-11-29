@@ -23,12 +23,9 @@
 
 # Native
 import os
-import io
 import re
 import requests
-from collections import Counter
 from unidecode import unidecode
-import warnings
 import datetime
 
 # External
@@ -94,8 +91,8 @@ def extract_bib(pub, args):
         last = unidecode(author.split(', ', 1)[0] if ', ' in author else author.split(' ', 1)[-1])
 
         # First name
-        first = [part for part in first.split(' ') \
-                if not ((len(part) > 2 and '.' in part) \
+        first = [part for part in first.split(' ')
+                if not ((len(part) > 2 and '.' in part)
                 or part.lower() in bad_names)] # remove names with length > 2 followed by full stop, and bad names
         if not first:
             first = '' # if list is empty
@@ -286,7 +283,7 @@ def extract_grobid(pub, bib_db, iterator):
 
     if os.path.exists(xml_path):
         with open(xml_path, 'r') as tei:
-            soup = BeautifulSoup(tei, 'lxml')
+            soup = BeautifulSoup(tei, "lxml-xml")
 
         if soup.analytic is None:
             pa_print.tprint(f'\n{xml_name} is empty!')
@@ -323,8 +320,10 @@ def extract_grobid(pub, bib_db, iterator):
         author_count = pub['author count']
         for author in range(author_count):
             for info in grob_info:
-                try: info[author]
-                except IndexError: info.append('N/A')
+                try:
+                    info[author]
+                except IndexError:
+                    info.append('N/A')
 
         # Add info to df - merge everything!
         pub['grobid author names'].extend(grob_names) # to check who appeared in grobid info
@@ -377,7 +376,7 @@ def extract_author_info(doc, pub):
     author_info = auth_regex.findall(doc)[:author_count] # grab only up to total authors
 
     if len(author_info) != 0:
-        pa_print.tprint(f'✓ - Found by block')
+        pa_print.tprint('✓ - Found by block')
 
     # * Method 2 - Look for block starting with author name (bibtex needed)
     else:

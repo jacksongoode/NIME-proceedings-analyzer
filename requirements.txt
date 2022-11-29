@@ -3,6 +3,8 @@ bibtexparser
 gender-guesser
 gensim
 geopy
+https://github.com/kermitt2/grobid_client_python/archive/refs/heads/master.zip
+lxml
 nltk
 numpy
 onomancer
@@ -20,4 +22,3 @@ requests
 tqdm
 Unidecode
 wordcloud
-https://github.com/kermitt2/grobid_client_python/archive/refs/heads/master.zip

@@ -26,20 +26,15 @@ import sys
 if sys.version_info < (3, 7):
     print("Please upgrade Python to version 3.7.0 or higher")
     sys.exit()
-import io
 import os
-from os import path
-import random
 import argparse
-import requests
 
 # External
 from tqdm import tqdm
-import orjson
 
 # Helper
 import pa_print
-from pa_utils import csv_save, calculate_carbon, fill_empty, doc_quality, post_processing, boolify
+from pa_utils import csv_save, calculate_carbon, doc_quality, post_processing
 from pa_request import request_location, request_scholar, request_uni
 from pa_extract import extract_text, extract_author_info, extract_grobid
 from pa_load import prep, load_unidomains, load_bibtex, extract_bibtex, check_xml
@@ -91,7 +86,7 @@ if __name__ == "__main__":
         pa_print.tprint(f"\n--- Now on: {pub['title']} ---")
 
         # Extract text from pdf if not PubPub
-        if not 'pubpub' in pub['url']:
+        if 'pubpub' not in pub['url']:
             doc = extract_text(pub)
             errored = doc_quality(doc, pub, 'text') # check for errors
 

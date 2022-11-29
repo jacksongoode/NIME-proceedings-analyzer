@@ -4,11 +4,14 @@
 .ipynb_checkpoints
 .idea
 .gradle
+.python-version
+.trunk/
 __pycache__
 scholar.log
 geckodriver.log
 /lastrun.log
-/resources/corrected/*
+/resources/corrected/
+/resources/Pub2TEI/
 /nime/
 /cache/
 /output/
