@@ -275,7 +275,7 @@ def extract_grobid(pub, bib_db, iterator):
             return fill
 
     if 'pubpub' in pub['url']:
-        xml_name = f"nime{pub['year']}_{pub['article-number']}.xml"
+        xml_name = f"nime{pub['year']}_{pub['articleno']}.xml"
     else:
         xml_name = pub['url'].split('/')[-1].split('.')[0]+'.tei.xml'
 

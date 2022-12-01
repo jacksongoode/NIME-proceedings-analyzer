@@ -203,8 +203,8 @@ def check_xml(bib_db, jats=False, overwrite=False):
         jats_db = [pub for pub in bib_db if 'pubpub' in pub['url']]
 
         for pub in jats_db:
-            jats_dict[f"nime{pub['year']}_{pub['article-number']}.xml"] = pub['url']
-        
+            jats_dict[f"nime{pub['year']}_{pub['articleno']}.xml"] = pub['url']
+
         multithread_dls(jats, jats_dict, jats_src)
 
         missing_jats = list(set(jats_dict.keys()) - set(xmls))
@@ -218,7 +218,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
         # Save unconverted pdfs but merge with unconvertable pdfs
         unconverted_pdfs = os.listdir(pdf_src)
         pdfs = unconverted_pdfs
-        
+
         bad_pdfs = []
         if os.path.exists('./cache/pdf/unconvertable_pdfs'):
             bad_pdfs = os.listdir('./cache/pdf/unconvertable_pdfs')
@@ -250,7 +250,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
             missing_xmls = list(set(check_xmls) - set(xmls))
             unconverted_pdfs = [xml.split('.')[0]+'.pdf' for xml in missing_xmls]
             print(f'{len(unconverted_pdfs)} PDFs were unable to be converted!')
-            
+
             os.makedirs('./cache/pdf/unconvertable_pdfs', exist_ok=True)
             for pdf in unconverted_pdfs:
                 shutil.move(f'./cache/pdf/{pdf}', f'./cache/pdf/unconvertable_pdfs/{pdf}')

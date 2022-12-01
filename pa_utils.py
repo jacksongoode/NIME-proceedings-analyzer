@@ -232,7 +232,7 @@ def post_processing(pub):
 
     # Iterate through article and get raw text
     if 'pubpub' in pub['url']:
-        file_name = f"nime{pub['year']}_{pub['article-number']}"
+        file_name = f"nime{pub['year']}_{pub['articleno']}"
     else:
         file_name = pub['url'].split('/')[-1].split('.')[0]
 
