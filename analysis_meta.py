@@ -96,8 +96,8 @@ def load_conf_csv(filepath):
 
 def papers_perc_citations(bib_df, perc):
     papers_total = len(bib_df.index)
-    cit_total = bib_df['citation count'].sum()
-    temp = bib_df['citation count'].sort_values(ascending=False)
+    cit_total = bib_df['scholar citation count'].sum()
+    temp = bib_df['scholar citation count'].sort_values(ascending=False)
     i = 0
     while True:
         current_perc = temp[0:i].sum() / cit_total
@@ -115,8 +115,8 @@ def papers_perc_citations_year(bib_df, perc):
     for y in years:
         temp1 = bib_df.loc[bib_df['year'] == y]
         papers_total = len(temp1.index)
-        cit_total = temp1['citation count'].sum()
-        temp2 = temp1['citation count'].sort_values(ascending=False)
+        cit_total = temp1['scholar citation count'].sum()
+        temp2 = temp1['scholar citation count'].sort_values(ascending=False)
         i = 0
         while True:
             current_perc = temp2[0:i].sum() / cit_total
@@ -132,14 +132,14 @@ def papers_top_citations_year(bib_df):
     years = bib_df['year'].unique()
     out = pd.DataFrame(index = years)
     out['title'] = ''
-    out['citation count'] = ''
+    out['scholar citation count'] = ''
     out['NIME reader'] = ''
     for y in years:
         temp = bib_df.loc[bib_df['year'] == y]
-        max_cit = temp['citation count'].max()
-        out.at[y,'title'] = temp.loc[bib_df['citation count'] == max_cit]['title'].to_string(index=False)
-        out.at[y,'citation count'] = temp.loc[bib_df['citation count'] == max_cit]['citation count'].to_string(index=False)
-        out.at[y,'NIME reader'] = temp.loc[bib_df['citation count'] == max_cit]['NIME reader'].to_string(index=False)
+        max_cit = temp['scholar citation count'].max()
+        out.at[y,'title'] = temp.loc[bib_df['scholar citation count'] == max_cit]['title'].to_string(index=False)
+        out.at[y,'scholar citation count'] = temp.loc[bib_df['scholar citation count'] == max_cit]['scholar citation count'].to_string(index=False)
+        out.at[y,'NIME reader'] = temp.loc[bib_df['scholar citation count'] == max_cit]['NIME reader'].to_string(index=False)
 
     return out
 
@@ -248,16 +248,16 @@ def stats_papers(bib_df):
     outtxt += '\nMax papers words %d' % max_paper_words
 
     # citations
-    papers_by_citations = bib_df['citation count'].value_counts(sort=False).sort_index()
-    citations_total = bib_df['citation count'].sum()
-    citations_per_year = bib_df.groupby(['year'])['citation count'].sum()
-    citations_per_year_norm_by_numpaper = bib_df.groupby(['year'])['citation count'].mean()
-    citations_per_year_norm_by_agepapers = bib_df.groupby(['year'])['yearly citations'].mean()
+    papers_by_citations = bib_df['scholar citation count'].value_counts(sort=False).sort_index()
+    citations_total = bib_df['scholar citation count'].sum()
+    citations_per_year = bib_df.groupby(['year'])['scholar citation count'].sum()
+    citations_per_year_norm_by_numpaper = bib_df.groupby(['year'])['scholar citation count'].mean()
+    citations_per_year_norm_by_agepapers = bib_df.groupby(['year'])['scholar yearly citations'].mean()
 
-    temp = bib_df.loc[bib_df['citation count'] >= 1]
+    temp = bib_df.loc[bib_df['scholar citation count'] >= 1]
     papers_at_least_1_citation =  len(temp.index)
 
-    temp = bib_df.loc[bib_df['citation count'] >= 10]
+    temp = bib_df.loc[bib_df['scholar citation count'] >= 10]
     papers_more_10_citations = len(temp.index)
 
     citations_50perc = papers_perc_citations(bib_df, 0.5)
@@ -266,17 +266,17 @@ def stats_papers(bib_df):
     citations_50perc_per_year = papers_perc_citations_year(bib_df, 0.5)
     citations_90perc_per_year = papers_perc_citations_year(bib_df, 0.9)
 
-    temp = bib_df.sort_values(by=['citation count'],ascending=False)
+    temp = bib_df.sort_values(by=['scholar citation count'],ascending=False)
     temp = temp.head(20)
-    top_papers_by_citations = temp[['citation count', 'title', 'year', 'NIME reader']]
+    top_papers_by_citations = temp[['scholar citation count', 'title', 'year', 'NIME reader']]
 
-    temp = bib_df.sort_values(by=['yearly citations'],ascending=False)
+    temp = bib_df.sort_values(by=['scholar yearly citations'],ascending=False)
     temp = temp.head(20)
-    top_papers_by_yearly_citations = temp[['yearly citations', 'title', 'year', 'NIME reader']]
+    top_papers_by_yearly_citations = temp[['scholar yearly citations', 'title', 'year', 'NIME reader']]
 
     most_cited_paper_by_pub_year = papers_top_citations_year(bib_df)
 
-    temp = bib_df.loc[bib_df['citation count'].isnull()]
+    temp = bib_df.loc[bib_df['scholar citation count'].isnull()]
     not_cited_pages = temp['page count'].value_counts(sort=True)
 
     outtxt += '\nTotal citations %d' % citations_total
@@ -335,7 +335,7 @@ def stats_authors(bib_df):
             auth_df.loc[j,'gender2'] = pub['author genders 2'][i]
             if pub['author genders 2'][i] == 'F':
                 flag = True
-            auth_df.loc[j,'citations'] = pub['citation count']
+            auth_df.loc[j,'citations'] = pub['scholar citation count']
             if i == 0:
                 auth_df.loc[j,'first'] = True
             else:
@@ -490,7 +490,7 @@ def stats_affiliation(bib_df, conf_df):
         for i in range(author_count):
             auth_df.loc[j,'year']= pub['year']
             auth_df.loc[j,'name'] = pub['author names'][i][0] + ' ' + pub['author names'][i][1]
-            auth_df.loc[j,'citations'] = pub['citation count']
+            auth_df.loc[j,'citations'] = pub['scholar citation count']
             auth_df.loc[j,'institutions'] = pub['institutions'][i]
             auth_df.loc[j,'country'] = pub['countries'][i]
             auth_df.loc[j,'continent'] = pub['continents'][i]
