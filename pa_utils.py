@@ -231,7 +231,7 @@ def post_processing(pub):
     pub['institutions'] = institutions # this is a union list to derive location using uni or organisation
 
     # Iterate through article and get raw text
-    if 'pubpub' in pub['url']:
+    if pub['puppub']:
         file_name = f"nime{pub['year']}_{pub['articleno']}"
     else:
         file_name = pub['url'].split('/')[-1].split('.')[0]

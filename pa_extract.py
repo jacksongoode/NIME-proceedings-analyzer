@@ -274,7 +274,7 @@ def extract_grobid(pub, bib_db, iterator):
         else:
             return fill
 
-    if 'pubpub' in pub['url']:
+    if pub['puppub']:
         xml_name = f"nime{pub['year']}_{pub['articleno']}.xml"
     else:
         xml_name = pub['url'].split('/')[-1].split('.')[0]+'.tei.xml'
@@ -354,7 +354,7 @@ def extract_grobid(pub, bib_db, iterator):
         pass
     else: # No XML - populate
         pa_print.tprint('\nGrobid XML does not exist for paper!')
-        if 'pubpub' in pub['url']:
+        if pub['puppub']:
             check_xml(bib_db, jats=True)
         else:
             check_xml(bib_db)

@@ -170,7 +170,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
                 print(f'Downloading {url}...')
                 if r.status_code == requests.codes.ok:
                     # Redirect if PubPub url
-                    if 'pubpub' in url and '.xml' not in url:
+                    if pub['puppub'] and '.xml' not in url:
                         url = re.search(r"jats&quot;,&quot;url&quot;:&quot;(.*?.xml)", r.text).group(1)
                         r = session.get(url)
                     open(dl_path + fn, 'wb').write(r.content)
@@ -200,11 +200,10 @@ def check_xml(bib_db, jats=False, overwrite=False):
         print('\nChecking for missing PubPub XMLs!')
         jats = os.listdir(jats_src)
         jats_dict = {}
-        jats_db = [pub for pub in bib_db if 'pubpub' in pub['url']]
-
+        jats_db = [pub for pub in bib_db if pub['puppub']]
         for pub in jats_db:
             jats_dict[f"nime{pub['year']}_{pub['articleno']}.xml"] = pub['url']
-
+    
         multithread_dls(jats, jats_dict, jats_src)
 
         missing_jats = list(set(jats_dict.keys()) - set(xmls))
@@ -234,6 +233,7 @@ def check_xml(bib_db, jats=False, overwrite=False):
         # Download pdfs
         missing_files = set(pdf_dict.keys()) - set(pdfs)
         if len(missing_files) > 0:
+            
             multithread_dls(unconverted_pdfs, pdf_dict, pdf_src)
 
         # Find what XMLs need to be downloaded

@@ -43,6 +43,7 @@ from pa_load import prep, load_unidomains, load_bibtex, extract_bibtex, check_xm
 # Variables/paths
 bibtex_path = os.getcwd()+'/cache/bibtex/nime_papers.bib'
 unidomains_path = os.getcwd()+'/cache/json/unidomains.json'
+pubpub_urls = ['pubpub.org', 'doi.org']
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze a publication given a BibTeX and directory of pdf documents')
@@ -86,7 +87,8 @@ if __name__ == "__main__":
         pa_print.tprint(f"\n--- Now on: {pub['title']} ---")
 
         # Extract text from pdf if not PubPub
-        if 'pubpub' not in pub['url']:
+        if not any(p in pub['url'] for p in pubpub_urls):
+            pub['puppub'] = False
             doc = extract_text(pub)
             errored = doc_quality(doc, pub, 'text') # check for errors
 
@@ -96,6 +98,7 @@ if __name__ == "__main__":
             else:
                 author_info = []
         else:
+            pub['puppub'] = True
             author_info = []
 
         # Extract doc from Grobid
