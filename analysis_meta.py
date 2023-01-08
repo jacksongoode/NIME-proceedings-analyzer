@@ -47,10 +47,15 @@ from scipy.optimize import curve_fit
 import pa_print
 from pa_utils import try_index, import_config, boolify
 
+def lotka_law(x, n, c):
+    return c / np.power(x, n)
+
+def is_not_nan(num):
+    return num == num
+
 def load_bib_csv(filepath, selectedyears):
     # TODO: This may not be the best solution available
     generic = lambda x: ast.literal_eval(x)
-    # ! Check if these are relevant or if we need to extend
     conv = {'author distances': generic,
             'author footprints': generic,
             'author genders': generic,
@@ -67,7 +72,8 @@ def load_bib_csv(filepath, selectedyears):
             'text author unis': generic,
             'countries': generic,
             'continents': generic,
-            'institutions': generic}
+            'institutions': generic,
+            'scholar authors id': generic}
 
     try: # accommodate regional delimiters
         bib_df = pd.read_csv(filepath, converters=conv)
@@ -81,7 +87,15 @@ def load_bib_csv(filepath, selectedyears):
 
     # Convert 'N/A' to NaN so pandas parser will ignore
     bib_df['author footprints'] = [pd.to_numeric(footprints, errors='coerce') for footprints in bib_df['author footprints']]
-    bib_df['author distances'] = [pd.to_numeric(footprints, errors='coerce') for footprints in bib_df['author distances']]
+    bib_df['author distances'] = [pd.to_numeric(distances, errors='coerce') for distances in bib_df['author distances']]
+    
+    # Convert dicts imported as string by pandas read_csv
+    bib_df['scholar embedding'] = [ast.literal_eval(embedding) if is_not_nan(embedding) else dict() for embedding in bib_df['scholar embedding']]
+    bib_df['scholar tldr'] = [ast.literal_eval(tldr) if is_not_nan(tldr) else dict() for tldr in bib_df['scholar tldr']]
+
+    # Convert lists of dicts imported as string by pandas read_csv 
+    bib_df['scholar references'] = [ast.literal_eval(references) if is_not_nan(references) else list() for references in bib_df['scholar references']]
+    bib_df['scholar citations'] = [ast.literal_eval(citations) if is_not_nan(citations) else list() for citations in bib_df['scholar citations']]
 
     return bib_df
 
@@ -142,9 +156,6 @@ def papers_top_citations_year(bib_df):
         out.at[y,'NIME reader'] = temp.loc[bib_df['scholar citation count'] == max_cit]['NIME reader'].to_string(index=False)
 
     return out
-
-def lotka_law(x, n, c):
-    return c / np.power(x, n)
 
 # Functions for generating stat-specific metrics
 def stats_papers(bib_df):

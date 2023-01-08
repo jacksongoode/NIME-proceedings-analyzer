@@ -91,11 +91,11 @@ def request_scholar(pub, args):
     pub['scholar references count'] = 'N/A'
     pub['scholar paper id'] = 'N/A'
     pub['scholar title'] = 'N/A'
-    pub['scholar authors id'] = 'N/A'
-    pub['scholar embedding'] = 'N/A'
-    pub['scholar tldr'] = 'N/A'
-    pub['scholar citations'] = 'N/A'
-    pub['scholar references'] = 'N/A'
+    pub['scholar authors id'] = ['N/A']*len(pub['author names'])
+    pub['scholar embedding'] = {}
+    pub['scholar tldr'] = {}
+    pub['scholar citations'] = []
+    pub['scholar references'] = []
 
     # Make query title, name and year lists
     query_title = list(dict.fromkeys([title, regextitle.sub('', title), ' '.join([w for w in title.split() if len(w)>1])]))
