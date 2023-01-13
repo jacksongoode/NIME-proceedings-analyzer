@@ -72,7 +72,7 @@ def prep(args):
     # Generate cache folders
     for folder in ['./cache/pdf/', './cache/xml/', './cache/jats/',
                    './cache/text/grobid/', './cache/text/miner/',
-                   './cache/bibtex/', './cache/json/',
+                   './cache/bibtex/', './cache/json/', './cache/objects/',
                    './output/', './resources/corrected/', '.resources/Pub2TEI']:
         os.makedirs(os.path.dirname(f'{folder}'), exist_ok=True)
 

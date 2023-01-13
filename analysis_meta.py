@@ -30,7 +30,7 @@ import os
 from os import path
 import argparse
 import ast
-from collections import Counter
+import collections
 from itertools import cycle
 
 # External
@@ -506,15 +506,15 @@ def stats_affiliation(bib_df, conf_df):
             auth_df.loc[j,'country'] = pub['countries'][i]
             auth_df.loc[j,'continent'] = pub['continents'][i]
             j = j + 1
-        if len(Counter(pub['institutions']).keys()) > 1:
+        if len(collections.Counter(pub['institutions']).keys()) > 1:
             mixed_df.loc[idx,'institutions'] = True
         else:
             mixed_df.loc[idx,'institutions'] = False
-        if len(Counter(pub['countries']).keys()) > 1:
+        if len(collections.Counter(pub['countries']).keys()) > 1:
             mixed_df.loc[idx,'country'] = True
         else:
             mixed_df.loc[idx,'country'] = False
-        if len(Counter(pub['continents']).keys()) > 1:
+        if len(collections.Counter(pub['continents']).keys()) > 1:
             mixed_df.loc[idx,'continent'] = True
         else:
             mixed_df.loc[idx,'continent'] = False

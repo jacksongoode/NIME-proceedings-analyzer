@@ -88,7 +88,7 @@ def request_scholar(pub, args):
     pub['scholar query'] = 'N/A'
     pub['scholar citation count'] = 'N/A'
     pub['scholar influential citation count'] = 'N/A'
-    pub['scholar references count'] = 'N/A'
+    pub['scholar reference count'] = 'N/A'
     pub['scholar paper id'] = 'N/A'
     pub['scholar title'] = 'N/A'
     pub['scholar authors id'] = ['N/A']*len(pub['author names'])
@@ -96,6 +96,7 @@ def request_scholar(pub, args):
     pub['scholar tldr'] = {}
     pub['scholar citations'] = []
     pub['scholar references'] = []
+    pub['scholar valid'] = False
 
     # Make query title, name and year lists
     query_title = list(dict.fromkeys([title, regextitle.sub('', title), ' '.join([w for w in title.split() if len(w)>1])]))
@@ -163,7 +164,9 @@ def request_scholar(pub, args):
                             pub['scholar tldr'] = lookup_result['tldr']
                             pub['scholar citations'] = lookup_result['citations']
                             pub['scholar references'] = lookup_result['references']
-                            pub['scholar references count'] = len(lookup_result['references'])
+                            pub['scholar reference count'] = len(lookup_result['references'])
+                            if pub['scholar reference count'] > 0:
+                                pub['scholar valid'] = True
 
                         pa_print.tprint(f"✓ - Paper has been cited {pub['scholar citation count']} times")
 
@@ -187,7 +190,9 @@ def request_scholar(pub, args):
             pub['scholar tldr'] = scholar_cache[pub['scholar paper id']]['tldr']
             pub['scholar citations'] = scholar_cache[pub['scholar paper id']]['citations']
             pub['scholar references'] = scholar_cache[pub['scholar paper id']]['references']
-            pub['scholar references count'] = len(scholar_cache[pub['scholar paper id']]['references'])
+            pub['scholar reference count'] = len(scholar_cache[pub['scholar paper id']]['references'])
+            if pub['scholar reference count'] > 0:
+                pub['scholar valid'] = True
 
         pa_print.tprint(f"\no - Retrieved from cache: {pub['scholar citation count']} citations")
 
