@@ -39,7 +39,7 @@ Note: For Macbooks based on arm, a the library located at `/NIME-proceedings-ana
 
 This script produces a database which includes an entry for each published NIME paper. For each paper the database includes:
 
-- information extracted from the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib)
+- information extracted from the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography)
 - additional information extracted from the PDF file of the papers using [Grobid](https://github.com/kermitt2/grobid)
 - location and affiliation of the authors, extracted using a combination methods that minimizes errors
 - gender of the authors estimated using a [binary](https://github.com/parthmaul/onomancer) and [non-binary method](https://github.com/lead-ratings/gender-guesser)
