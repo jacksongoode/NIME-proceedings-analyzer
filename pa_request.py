@@ -51,8 +51,8 @@ def scholar_api_paper_search(query):
 
 def scholar_api_paper_lookup(paper_id):
     api = 'https://api.semanticscholar.org/graph/v1/paper/'
-    cit = 'citations.authors,citations.title,citations.year,citations.fieldsOfStudy,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal'
-    ref = 'references.authors,references.title,references.year,references.fieldsOfStudy,references.s2FieldsOfStudy,references.publicationTypes,references.journal'
+    cit = 'citations.authors,citations.title,citations.year,citations.fieldsOfStudy,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal,citations.publicationVenue'
+    ref = 'references.authors,references.title,references.year,references.fieldsOfStudy,references.s2FieldsOfStudy,references.publicationTypes,references.journal,references.publicationVenue'
     fields = '?fields=title,authors,paperId,embedding,tldr,'+cit+','+ref             
     query_result = requests.get(api+paper_id+fields).json()
     time.sleep(3) # max 100 requests per 5 minute
