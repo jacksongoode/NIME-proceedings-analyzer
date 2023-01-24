@@ -51,9 +51,9 @@ def scholar_api_paper_search(query):
 
 def scholar_api_paper_lookup(paper_id):
     api = 'https://api.semanticscholar.org/graph/v1/paper/'
-    cit = 'citations.authors,citations.title,citations.year,citations.fieldsOfStudy,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal,citations.publicationVenue'
-    ref = 'references.authors,references.title,references.year,references.fieldsOfStudy,references.s2FieldsOfStudy,references.publicationTypes,references.journal,references.publicationVenue'
-    fields = '?fields=title,authors,paperId,embedding,tldr,'+cit+','+ref             
+    cit = 'citations.authors,citations.title,citations.year,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal,citations.publicationVenue'
+    ref = 'references.authors,references.title,references.year,references.s2FieldsOfStudy,references.publicationTypes,references.journal,references.publicationVenue'
+    fields = '?fields=title,authors,paperId,embedding,s2FieldsOfStudy,publicationTypes,publicationVenue,tldr,'+cit+','+ref             
     query_result = requests.get(api+paper_id+fields).json()
     time.sleep(3) # max 100 requests per 5 minute
     return query_result
@@ -94,9 +94,17 @@ def request_scholar(pub, args):
     pub['scholar authors id'] = ['N/A']*len(pub['author names'])
     pub['scholar embedding'] = {}
     pub['scholar tldr'] = {}
+    pub['scholar field of study'] = []
+    pub['scholar publication venue'] = {}
+    pub['scholar publication type'] = []
+    pub['scholar references'] = []
     pub['scholar citations'] = []
     pub['scholar references'] = []
     pub['scholar valid'] = False
+    pub['scholar field of study'] = []
+    pub['scholar publication venue'] = []
+    pub['scholar publication type'] = []
+
 
     # Make query title, name and year lists
     query_title = list(dict.fromkeys([title, regextitle.sub('', title), ' '.join([w for w in title.split() if len(w)>1])]))
@@ -160,13 +168,23 @@ def request_scholar(pub, args):
                             pa_print.tprint(f'\nSemantic Scholar paper lookup...')
                             lookup_result = scholar_api_paper_lookup(pub['scholar paper id'])
                             scholar_cache[pub['scholar paper id']] = lookup_result
-                            pub['scholar embedding'] = lookup_result['embedding']
-                            pub['scholar tldr'] = lookup_result['tldr']
-                            pub['scholar citations'] = lookup_result['citations']
-                            pub['scholar references'] = lookup_result['references']
-                            pub['scholar reference count'] = len(lookup_result['references'])
-                            if pub['scholar reference count'] > 0:
-                                pub['scholar valid'] = True
+                            if 'embedding' in lookup_result:
+                                pub['scholar embedding'] = lookup_result['embedding']
+                            if 'tldr' in lookup_result:
+                                pub['scholar tldr'] = lookup_result['tldr']
+                            if 's2FieldsOfStudy' in lookup_result:
+                                pub['scholar field of study'] = lookup_result['s2FieldsOfStudy']
+                            if 'publicationTypes' in lookup_result:
+                                pub['scholar publication venue'] = lookup_result['publicationVenue']
+                            if 'publicationTypes' in lookup_result:
+                                pub['scholar publication type'] = lookup_result['publicationTypes']
+                            if 'citations' in lookup_result:
+                                pub['scholar citations'] = lookup_result['citations']
+                            if 'references' in lookup_result:
+                                pub['scholar references'] = lookup_result['references']
+                                pub['scholar reference count'] = len(lookup_result['references'])
+                                if pub['scholar reference count'] > 0:
+                                    pub['scholar valid'] = True
 
                         pa_print.tprint(f"✓ - Paper has been cited {pub['scholar citation count']} times")
 
@@ -181,18 +199,23 @@ def request_scholar(pub, args):
 
     else:
         if scholar_cache[full_query] != 'N/A':
+            print('####DEBUG2####',scholar_cache[full_query])
             pub['scholar citation count'] = scholar_cache[full_query]['data'][0]['citationCount']
             pub['scholar influential citation count'] = scholar_cache[full_query]['data'][0]['influentialCitationCount']
             pub['scholar paper id'] = scholar_cache[full_query]['data'][0]['paperId']
             pub['scholar title'] = scholar_cache[full_query]['data'][0]['title']
             pub['scholar authors id'] = [t['authorId'] for t in scholar_cache[full_query]['data'][0]['authors']]
-            pub['scholar embedding'] = scholar_cache[pub['scholar paper id']]['embedding']
-            pub['scholar tldr'] = scholar_cache[pub['scholar paper id']]['tldr']
-            pub['scholar citations'] = scholar_cache[pub['scholar paper id']]['citations']
-            pub['scholar references'] = scholar_cache[pub['scholar paper id']]['references']
-            pub['scholar reference count'] = len(scholar_cache[pub['scholar paper id']]['references'])
-            if pub['scholar reference count'] > 0:
-                pub['scholar valid'] = True
+            if 'embedding' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar embedding'] = scholar_cache[pub['scholar paper id']]['embedding']
+            if 'tldr' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar tldr'] = scholar_cache[pub['scholar paper id']]['tldr']
+            if 'citations' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar citations'] = scholar_cache[pub['scholar paper id']]['citations']
+            if 'references' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar references'] = scholar_cache[pub['scholar paper id']]['references']
+                pub['scholar reference count'] = len(scholar_cache[pub['scholar paper id']]['references'])
+                if pub['scholar reference count'] > 0:
+                    pub['scholar valid'] = True
 
         pa_print.tprint(f"\no - Retrieved from cache: {pub['scholar citation count']} citations")
 
