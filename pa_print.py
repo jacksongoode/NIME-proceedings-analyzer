@@ -25,7 +25,7 @@ from tqdm import tqdm
 import logging
 
 notice = '\nNIME Proceedings Analyzer\n\
-Copyright (C) 2022 Jackson Goode, Stefano Fasciani\n\
+Copyright (C) 2023 Jackson Goode, Stefano Fasciani\n\
 This program comes with ABSOLUTELY NO WARRANTY;\n\
 This is free software, and you are welcome to redistribute it\n\
 under certain conditions; for details check the LICENSE file.\n'
