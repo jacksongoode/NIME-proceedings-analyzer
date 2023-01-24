@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2022 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2023 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,6 +44,9 @@ import numpy as np
 import datetime
 from scipy.optimize import curve_fit
 from matplotlib import pyplot as plt
+import matplotlib.cm as cm
+from sklearn.manifold import TSNE
+
 
 import nltk
 nltk.download('punkt', download_dir='./cache/nltk_data', quiet=True)
@@ -64,8 +67,8 @@ def is_not_nan(num):
 
 def load_bib_csv(filepath, selectedyears):
 
-    if os.path.isfile('./cache/objects/cleaned_bib_df.obj'):
-        bib_df = pd.read_pickle('./cache/objects/cleaned_bib_df.obj')
+    if os.path.isfile('./cache/df/cleaned_bib_df.obj'):
+        bib_df = pd.read_pickle('./cache/df/cleaned_bib_df.obj')
         return bib_df
 
     # TODO: This may not be the best solution available
@@ -111,17 +114,22 @@ def load_bib_csv(filepath, selectedyears):
     bib_df['scholar references'] = [ast.literal_eval(references) if is_not_nan(references) else list() for references in bib_df['scholar references']]
     bib_df['scholar citations'] = [ast.literal_eval(citations) if is_not_nan(citations) else list() for citations in bib_df['scholar citations']]
 
-    bib_df.to_pickle('./cache/objects/cleaned_bib_df.obj')  
+    bib_df.to_pickle('./cache/df/cleaned_bib_df.obj')  
 
     return bib_df
 
 def generate_cit_ref_auth_df(bib_df):
 
-    #if os.path.isfile('./cache/objects/cit_df.obj') and os.path.isfile('./cache/objects/ref_df.obj') and os.path.isfile('./cache/objects/auth_df.obj'):
-    #    cit_df = pd.read_pickle('./cache/objects/cit_df.obj')
-    #    ref_df = pd.read_pickle('./cache/objects/ref_df.obj')
-    #    auth_df = pd.read_pickle('./cache/objects/ref_df.obj')
-    #    return cit_df, ref_df, auth_df
+    if os.path.isfile('./cache/df/cit_df.obj') and os.path.isfile('./cache/df/ref_df.obj') and os.path.isfile('./cache/df/auth_df.obj'):
+        cit_df = pd.read_pickle('./cache/df/cit_df.obj')
+        ref_df = pd.read_pickle('./cache/df/ref_df.obj')
+        auth_df = pd.read_pickle('./cache/df/auth_df.obj')
+        return cit_df, ref_df, auth_df
+
+
+    #make df field study (nime, nonime, all)
+    #make df publication type
+    #make df publication years (years in which cited and citing works were published)
 
     years = np.sort(bib_df['year'].unique())
     years_empty_dict = dict.fromkeys(years,0)
@@ -131,13 +139,12 @@ def generate_cit_ref_auth_df(bib_df):
     NIME_authors_id = list(dict.fromkeys(NIME_authors_id))
     NIME_authors_id.remove('N/A')
 
-    cit_df = pd.DataFrame(columns=['paperId', 'title', 'year', 'fieldsOfStudy', 's2FieldsOfStudy', 'publicationTypes', 'journal', 'authors', 'count', 'count_year', 'in NIME'])
-    ref_df = pd.DataFrame(columns=['paperId', 'title', 'year', 'fieldsOfStudy', 's2FieldsOfStudy', 'publicationTypes', 'journal', 'authors', 'count', 'count_year', 'in NIME'])
+    cit_df = pd.DataFrame(columns=['paperId', 'title', 'year', 'fieldsOfStudy', 's2FieldsOfStudy', 'publicationTypes', 'journal', 'venue', 'authors', 'count', 'count_year', 'in NIME'])
+    ref_df = pd.DataFrame(columns=['paperId', 'title', 'year', 'fieldsOfStudy', 's2FieldsOfStudy', 'publicationTypes', 'journal', 'venue', 'authors', 'count', 'count_year', 'in NIME'])
     auth_df = pd.DataFrame(columns=['authorId', 'name', 'cit_count', 'cit_count_year', 'ref_count', 'ref_count_year' 'in NIME'])
 
-
     for index,item in bib_df.iterrows():
-        print(index)########################################
+        print('###DEBUG###, creating aux DFs',index)
         for cit in item['scholar citations']:
             for auth in cit['authors']:
                 if auth['authorId'] is not None:
@@ -146,14 +153,16 @@ def generate_cit_ref_auth_df(bib_df):
                         auth_df.at[idx, 'cit_count'] = auth_df.at[idx, 'cit_count'] + 1
                         auth_df.at[idx, 'cit_count_year'][item['year']] = auth_df.at[idx, 'cit_count_year'][item['year']] + 1
                     else:
-                        auth['cit_count'] = 1
-                        auth['cit_count_year'] = years_empty_dict.copy()
-                        auth['cit_count_year'][item['year']] = auth['cit_count_year'][item['year']] + 1
-                        auth['ref_count'] = 0
-                        auth['ref_count_year'] = years_empty_dict.copy()
-                        auth['in NIME'] = False
-                        if auth['authorId'] in NIME_authors_id:
-                            auth['in NIME'] = True
+                        temp = auth.copy()
+                        temp['cit_count'] = 1
+                        temp['cit_count_year'] = years_empty_dict.copy()
+                        temp['cit_count_year'][item['year']] = temp['cit_count_year'][item['year']] + 1
+                        temp['ref_count'] = 0
+                        temp['ref_count_year'] = years_empty_dict.copy()
+                        temp['in NIME'] = False
+                        if temp['authorId'] in NIME_authors_id:
+                            temp['in NIME'] = True
+                        auth_df = auth_df.append(temp, ignore_index=True)
             if cit['paperId'] is None:
                 continue
             if any(cit_df['paperId'].isin([cit['paperId']])):
@@ -161,11 +170,12 @@ def generate_cit_ref_auth_df(bib_df):
                 cit_df.at[idx, 'count'] = cit_df.at[idx, 'count'] + 1
                 cit_df.at[idx, 'count_year'][item['year']] = cit_df.at[idx, 'count_year'][item['year']] + 1
             else:
-                cit['count'] = 1
-                cit['count_year'] = years_empty_dict.copy()
-                cit['count_year'][item['year']] = cit['count_year'][item['year']] + 1
-                cit['in NIME'] = any(bib_df['scholar paper id'].isin([cit['paperId']]))
-                cit_df = cit_df.append(cit, ignore_index=True)
+                temp = cit.copy()
+                temp['count'] = 1
+                temp['count_year'] = years_empty_dict.copy()
+                temp['count_year'][item['year']] = temp['count_year'][item['year']] + 1
+                temp['in NIME'] = any(bib_df['scholar paper id'].isin([cit['paperId']]))
+                cit_df = cit_df.append(temp, ignore_index=True)
               
         for ref in item['scholar references']:
             for auth in ref['authors']:
@@ -175,14 +185,16 @@ def generate_cit_ref_auth_df(bib_df):
                         auth_df.at[idx, 'ref_count'] = auth_df.at[idx, 'ref_count'] + 1
                         auth_df.at[idx, 'ref_count_year'][item['year']] = auth_df.at[idx, 'ref_count_year'][item['year']] + 1
                     else:
-                        auth['cit_count'] = 0
-                        auth['cit_count_year'] = years_empty_dict.copy()
-                        auth['ref_count'] = 1
-                        auth['ref_count_year'] = years_empty_dict.copy()
-                        auth['ref_count_year'][item['year']] = auth['ref_count_year'][item['year']] + 1
-                        auth['in NIME'] = False
-                        if auth['authorId'] in NIME_authors_id:
-                            auth['in NIME'] = True
+                        temp = auth.copy()
+                        temp['cit_count'] = 0
+                        temp['cit_count_year'] = years_empty_dict.copy()
+                        temp['ref_count'] = 1
+                        temp['ref_count_year'] = years_empty_dict.copy()
+                        temp['ref_count_year'][item['year']] = temp['ref_count_year'][item['year']] + 1
+                        temp['in NIME'] = False
+                        if temp['authorId'] in NIME_authors_id:
+                            temp['in NIME'] = True
+                        auth_df = auth_df.append(temp, ignore_index=True)
             if ref['paperId'] is None:
                 continue
             if any(ref_df['paperId'].isin([ref['paperId']])):
@@ -190,15 +202,16 @@ def generate_cit_ref_auth_df(bib_df):
                 ref_df.at[idx, 'count'] = ref_df.at[idx, 'count'] + 1
                 ref_df.at[idx, 'count_year'][item['year']] = ref_df.at[idx, 'count_year'][item['year']] + 1
             else:
-                ref['count'] = 1
-                ref['count_year'] = years_empty_dict.copy()
-                ref['count_year'][item['year']] = ref['count_year'][item['year']] + 1
-                ref['in NIME'] = any(bib_df['scholar paper id'].isin([ref['paperId']]))
-                ref_df = ref_df.append(ref, ignore_index=True)
+                temp = ref.copy()
+                temp['count'] = 1
+                temp['count_year'] = years_empty_dict.copy()
+                temp['count_year'][item['year']] = temp['count_year'][item['year']] + 1
+                temp['in NIME'] = any(bib_df['scholar paper id'].isin([ref['paperId']]))
+                ref_df = ref_df.append(temp, ignore_index=True)
 
-    cit_df.to_pickle('./cache/objects/cit_df.obj')  
-    ref_df.to_pickle('./cache/objects/ref_df.obj')
-    auth_df.to_pickle('./cache/objects/ref_df.obj')  
+    cit_df.to_pickle('./cache/df/cit_df.obj')
+    ref_df.to_pickle('./cache/df/ref_df.obj')
+    auth_df.to_pickle('./cache/df/auth_df.obj')
 
     return cit_df, ref_df, auth_df
 
@@ -274,16 +287,12 @@ def papers_top_citations_year(bib_df):
 
     return out
 
-def stats_bibliography(bib_df, cit_df, ref_df, auth_df):
+def stats_bibliometric(bib_df, cit_df, ref_df, auth_df):
 
-    pa_print.nprint('\nComputing bibliography statistics...')
+    pa_print.nprint('\nComputing bibliometric statistics...')
 
     years = np.sort(bib_df['year'].unique())
-
-    NIME_authors_id = bib_df['scholar authors id'].tolist()
-    NIME_authors_id = list(chain.from_iterable(NIME_authors_id))
-    NIME_authors_id = list(dict.fromkeys(NIME_authors_id))
-    NIME_authors_id.remove('N/A')
+    years_rel = np.delete(years, np.where((years == 2021) | (years == 2022))) #removing PubPub years
 
     outtxt = ''
 
@@ -296,26 +305,51 @@ def stats_bibliography(bib_df, cit_df, ref_df, auth_df):
     outtxt += '\nTotal papers found in scholar %d equivalent to %f %%' % (papers_total_in_scholar, 100*papers_total_in_scholar/papers_total)
     outtxt += '\nTotal papers with reliable data in scholar %d equivalent to %f %%' % (papers_total_in_scholar_reliable, 100*papers_total_in_scholar_reliable/papers_total)
    
+    #total authors
+    total_authors = bib_df['author count'].sum()
+
+    auth_df = pd.DataFrame(index=range(bib_df['author count'].sum()), columns=['year','name','gender1','gender2','citations','first','mixed'])
+    cnt = 0
+    for idx, item in bib_df.iterrows():
+        author_count = item['author count']
+        for i in range(author_count):
+            auth_df.loc[cnt,'name'] = item['author names'][i][0] + ' ' + item['author names'][i][1]
+            cnt = cnt + 1
+    temp = auth_df.drop_duplicates(subset = ['name'])
+    unique_authors = len(temp.index)
+
+    NIME_authors_id = bib_df['scholar authors id'].tolist()
+    NIME_authors_id = list(chain.from_iterable(NIME_authors_id))
+    NIME_authors_id = list(dict.fromkeys(NIME_authors_id))
+    NIME_authors_id.remove('N/A')
+
+
+    outtxt += '\nTotal authors %d' % total_authors
+    outtxt += '\nTotal unique authors %d' % unique_authors
+    outtxt += '\nTotal authors found in scholar %d' % len(NIME_authors_id)
+
     # total and average average number of citations and references
-    citations_total = 0
-    references_total = 0
+    citations_total_arr = []
+    references_total_arr = []
 
     for index,item in bib_df.iterrows():
-        citations_total = citations_total + len(item['scholar citations'])
-        references_total = references_total + len(item['scholar references'])
+        citations_total_arr = np.append(citations_total_arr, len(item['scholar citations']))
+        if item['scholar valid']:
+            references_total_arr = np.append(references_total_arr, len(item['scholar references']))
 
-    outtxt += '\nTotal citations %d' % citations_total
-    outtxt += '\nTotal references %d' % references_total
-    outtxt += '\nAverage citations per paper %d' % (citations_total/papers_total)
-    outtxt += '\nAverage references per paper %d' % (references_total/papers_total)
+    outtxt += '\nTotal references %d' % references_total_arr.sum()
+    outtxt += '\nTotal citations %d' % citations_total_arr.sum()
+    outtxt += '\nReferences per paper average %f, standard deviation %f' % (references_total_arr.mean(), references_total_arr.std())
+    outtxt += '\nCitations per paper average %f, standard deviation %f' % (citations_total_arr.mean(), citations_total_arr.std())
+
 
     papers_per_year = pd.DataFrame(index = years)
     citations_per_year = pd.DataFrame(index = years)
     references_per_year = pd.DataFrame(index = years)
 
     papers_per_year['total'] = ''
-    papers_per_year['Percentage in scholar'] = ''
-    papers_per_year['Percentage reliable in scholar'] = ''
+    papers_per_year['total in scholar'] = ''
+    papers_per_year['total reliable in scholar'] = ''
     citations_per_year['total'] = ''
     citations_per_year['norm by numpaper'] = ''
     citations_per_year['norm by agepaper'] = ''
@@ -323,17 +357,17 @@ def stats_bibliography(bib_df, cit_df, ref_df, auth_df):
     references_per_year['total'] = ''
     references_per_year['norm by numpaper'] = ''
 
-
     for y in years:
         papers = bib_df.loc[bib_df['year'] == y]
         papers_per_year.at[y, 'total'] = len(papers.index)
-        papers_per_year.at[y, 'Percentage in scholar'] = 100*len(papers.loc[is_not_nan(papers['scholar paper id'])])/papers_per_year.at[y, 'total']
-        papers_per_year.at[y, 'Percentage reliable in scholar'] = 100*len(papers.loc[papers['scholar valid'] ==  True])/papers_per_year.at[y, 'total']
+        papers_per_year.at[y, 'total in scholar'] = len(papers.loc[is_not_nan(papers['scholar paper id'])])
+        papers_per_year.at[y, 'total reliable in scholar'] = len(papers.loc[papers['scholar valid'] ==  True])
         acc_citations = 0
         acc_references = 0
         for index,item in papers.iterrows():
             acc_citations = acc_citations + len(item['scholar citations'])
-            acc_references = acc_references + len(item['scholar references'])
+            if item['scholar valid']:
+                acc_references = acc_references + len(item['scholar references'])
         citations_per_year.at[y,'total'] = acc_citations
         citations_per_year.at[y,'norm by numpaper'] = acc_citations/len(papers)
         citations_per_year.at[y,'norm by agepaper'] = acc_citations/papers['age'].values[0]
@@ -341,7 +375,10 @@ def stats_bibliography(bib_df, cit_df, ref_df, auth_df):
         papers_in_scholar = papers.loc[is_not_nan(papers['scholar paper id'])]
         references_per_year.at[y,'total'] = acc_references
         references_per_year.at[y,'norm by numpaper'] = acc_references/len(papers_in_scholar)
-
+    
+    temp = bib_df[bib_df['scholar valid'] == True]
+    papers_by_references = temp['scholar reference count'].value_counts(sort=False).sort_index()
+    papers_by_citations = bib_df['scholar citation count'].value_counts(sort=False).sort_index()
 
     # number of citations and references from/to NIME paper and authors
     bib_df['citations from NIME'] = ''
@@ -349,32 +386,68 @@ def stats_bibliography(bib_df, cit_df, ref_df, auth_df):
     bib_df['citations from NIME authors'] = ''
     bib_df['references to NIME authors'] = ''
 
-    for index,item in bib_df.iterrows():
-        cit_acc = 0
-        ref_acc = 0
-        bib_df.at[index, 'citations from NIME authors'] = 0
-        bib_df.at[index, 'references to NIME authors'] = 0
-        for cit in item['scholar citations']:
-            if any(bib_df['scholar paper id'].isin([cit['paperId']])):
-                cit_acc = cit_acc + 1
-            for auth in cit['authors']:
-                if auth['authorId'] in NIME_authors_id:
-                    bib_df.at[index, 'citations from NIME authors'] = bib_df.at[index, 'citations from NIME authors'] + 1
-                    break
-        bib_df.at[index,'citations from NIME'] = cit_acc
-        for ref in item['scholar references']:
-            if any(bib_df['scholar paper id'].isin([ref['paperId']])):
-                ref_acc = ref_acc + 1
-            for auth in ref['authors']:
-                if auth['authorId'] in NIME_authors_id:
-                    bib_df.at[index, 'references to NIME authors'] = bib_df.at[index, 'references to NIME authors'] + 1
-                    break
-        bib_df.at[index,'references to NIME'] = ref_acc
+    references_age_distr_relative = {}
+    references_age_distr_relative_year = {}
+    citations_age_distr_relative = {}
+    citations_age_distr_relative_year = {}
+
+    for y in years:
+        papers = bib_df.loc[bib_df['year'] == y]
+        references_age_distr_relative_year[y] = {}
+        citations_age_distr_relative_year[y] = {}
+        for index,item in papers.iterrows():
+            cit_acc = 0
+            ref_acc = 0
+            bib_df.at[index, 'citations from NIME authors'] = 0
+            bib_df.at[index, 'references to NIME authors'] = 0
+            for cit in item['scholar citations']:
+                if cit['year']:
+                    diff = cit['year'] - item['year']
+                    if diff in citations_age_distr_relative:
+                        citations_age_distr_relative[diff] = citations_age_distr_relative[diff] + 1
+                    else:
+                        citations_age_distr_relative[diff] = 1
+                    if diff in citations_age_distr_relative_year[y]:
+                        citations_age_distr_relative_year[y][diff] = citations_age_distr_relative_year[y][diff] + 1
+                    else:
+                        citations_age_distr_relative_year[y][diff] = 1
+                if any(bib_df['scholar paper id'].isin([cit['paperId']])):
+                    cit_acc = cit_acc + 1
+                for auth in cit['authors']:
+                    if auth['authorId'] in NIME_authors_id:
+                        bib_df.at[index, 'citations from NIME authors'] = bib_df.at[index, 'citations from NIME authors'] + 1
+                        break
+            bib_df.at[index,'citations from NIME'] = cit_acc
+            if item['scholar valid']:
+                for ref in item['scholar references']:
+                    if ref['year']:
+                        diff = item['year'] - ref['year'] 
+                        if diff in references_age_distr_relative:
+                            references_age_distr_relative[diff] = references_age_distr_relative[diff] + 1
+                        else:
+                            references_age_distr_relative[diff] = 1
+                        if diff in references_age_distr_relative_year[y]:
+                            references_age_distr_relative_year[y][diff] = references_age_distr_relative_year[y][diff] + 1
+                        else:
+                            references_age_distr_relative_year[y][diff] = 1
+                    if any(bib_df['scholar paper id'].isin([ref['paperId']])):
+                        ref_acc = ref_acc + 1
+                    for auth in ref['authors']:
+                        if auth['authorId'] in NIME_authors_id:
+                            bib_df.at[index, 'references to NIME authors'] = bib_df.at[index, 'references to NIME authors'] + 1
+                            break
+                bib_df.at[index,'references to NIME'] = ref_acc
+            else:
+                bib_df.at[index,'references to NIME'] = 0
 
 
-    outtxt += '\nTotal citations from NIME %d equivalent to %f %%' % (bib_df['citations from NIME'].sum(), 100*bib_df['citations from NIME'].sum()/citations_total)
-    outtxt += '\nTotal references to NIME %d equivalent to %f %%' % (bib_df['references to NIME'].sum(), 100*bib_df['references to NIME'].sum()/references_total)
+    references_age_distr_relative = pd.DataFrame.from_dict(references_age_distr_relative, orient='index').sort_index()
+    citations_age_distr_relative = pd.DataFrame.from_dict(citations_age_distr_relative, orient='index').sort_index()
+    references_age_distr_relative_year = pd.DataFrame.from_dict(references_age_distr_relative_year, orient='index')
+    citations_age_distr_relative_year = pd.DataFrame.from_dict(citations_age_distr_relative_year, orient='index')
 
+    outtxt += '\nTotal references to NIME %d equivalent to %f %%' % (bib_df['references to NIME'].sum(), 100*bib_df['references to NIME'].sum()/references_total_arr.sum())
+    outtxt += '\nTotal citations from NIME %d equivalent to %f %%' % (bib_df['citations from NIME'].sum(), 100*bib_df['citations from NIME'].sum()/citations_total_arr.sum())
 
     citations_per_year['from NIME'] = ''
     citations_per_year['from NIME percentage'] = ''
@@ -388,8 +461,8 @@ def stats_bibliography(bib_df, cit_df, ref_df, auth_df):
         references_per_year.at[y, 'to NIME'] = papers['references to NIME'].sum()
         references_per_year.at[y, 'to NIME percentage'] = 100*references_per_year.at[y, 'to NIME']/references_per_year.at[y, 'total']
 
-    outtxt += '\nTotal citations from authors NIME %d equivalent to %f %%' % (bib_df['citations from NIME authors'].sum(), 100*bib_df['citations from NIME authors'].sum()/citations_total)
-    outtxt += '\nTotal references to NIME authors %d equivalent to %f %%' % (bib_df['references to NIME authors'].sum(), 100*bib_df['references to NIME authors'].sum()/references_total)
+    outtxt += '\nTotal references to NIME authors %d equivalent to %f %%' % (bib_df['references to NIME authors'].sum(), 100*bib_df['references to NIME authors'].sum()/references_total_arr.sum())
+    outtxt += '\nTotal citations from authors NIME %d equivalent to %f %%' % (bib_df['citations from NIME authors'].sum(), 100*bib_df['citations from NIME authors'].sum()/citations_total_arr.sum())
 
     citations_per_year['from NIME authors'] = ''
     citations_per_year['from NIME authors percentage'] = ''
@@ -405,46 +478,222 @@ def stats_bibliography(bib_df, cit_df, ref_df, auth_df):
 
 
 
-    processed_tldr = []
-    processed_cit_titles = []
-    processed_cit_titles_count = []
-    processed_ref_titles = []
-    processed_ref_titles_count = []
 
-    for index,item in bib_df.iterrows():
-        if item['scholar tldr']:
-            tldr = clean_text(item['scholar tldr']['text'], user_config)
-            processed_tldr.append(tldr)
 
-    for index,item in cit_df.iterrows():
-        if item['title']:
-            tit = clean_text(item['title'], user_config)
-            processed_cit_titles.append(tit)
-            processed_cit_titles_count.append(tit*item['count'])
+    ref_fields = {}
+    cit_fields = {}
+    proc_fields = {}
+    ref_venues = {}
+    cit_venues = {}
+    ref_fields_per_year = {}
+    cit_fields_per_year = {}
+    proc_fields_per_year = {}
+    ref_venues_per_year = {}
+    cit_venues_per_year = {}
+    pub_venues = {}
 
-    for index,item in ref_df.iterrows():
-        if item['title']:
-            tit = clean_text(item['title'], user_config)
-            processed_ref_titles.append(tit)
-            processed_ref_titles_count.append(tit*item['count'])
+    for y in years:
+        papers = bib_df.loc[bib_df['year'] == y]
+        cit_fields_per_year[y] = {}
+        ref_fields_per_year[y] = {}
+        proc_fields_per_year[y] = {}
+        ref_venues_per_year[y] = {}
+        cit_venues_per_year[y] = {}
+        for index,item in papers.iterrows():
 
-    processed_data = [('tldr', processed_tldr), ('cit_titles', processed_cit_titles), ('cit_titles_count', processed_cit_titles_count), ('ref_titles', processed_ref_titles), ('ref_titles_count', processed_ref_titles_count)]
 
-    gen_wordcloud(processed_data)
+            # for fld in cit['s2FieldsOfStudy']: ## NIME PAPERS FIELD OF STUDY ################################
+            #     if fld['category'] in cit_fields:
+            #         cit_fields[fld['category']] = cit_fields[fld['category']] + 1
+            #     else:
+            #         cit_fields[fld['category']] = 1
+            #     if fld['category'] in cit_fields_per_year[y]:
+            #         cit_fields_per_year[y][fld['category']] = cit_fields_per_year[y][fld['category']] + 1
+            #     else:
+            #         cit_fields_per_year[y][fld['category']] = 1  
+            for cit in item['scholar citations']:
+                if cit['publicationVenue']:
+                    if 'id' in cit['publicationVenue']:
+                        if cit['publicationVenue']['id'] in cit_venues:
+                            cit_venues[cit['publicationVenue']['id']] = cit_venues[cit['publicationVenue']['id']] + 1
+                        else:
+                            cit_venues[cit['publicationVenue']['id']] = + 1
+                        if cit['publicationVenue']['id'] in cit_venues_per_year[y]:
+                            cit_venues_per_year[y][cit['publicationVenue']['id']] = cit_venues_per_year[y][cit['publicationVenue']['id']] + 1
+                        else:
+                            cit_venues_per_year[y][cit['publicationVenue']['id']] = + 1
+                        if cit['publicationVenue']['id'] not in pub_venues:
+                            if 'alternate_names' in cit['publicationVenue']:
+                                pub_venues[cit['publicationVenue']['id']] = cit['publicationVenue']['alternate_names']
+                            else:
+                                pub_venues[cit['publicationVenue']['id']] = cit['publicationVenue']['name']
+                if cit['s2FieldsOfStudy']:
+                    for fld in cit['s2FieldsOfStudy']:
+                        if fld['category'] in cit_fields:
+                            cit_fields[fld['category']] = cit_fields[fld['category']] + 1
+                        else:
+                            cit_fields[fld['category']] = 1
+                        if fld['category'] in cit_fields_per_year[y]:
+                            cit_fields_per_year[y][fld['category']] = cit_fields_per_year[y][fld['category']] + 1
+                        else:
+                            cit_fields_per_year[y][fld['category']] = 1
+            if item['scholar valid']:
+                for ref in item['scholar references']:
+                    if ref['publicationVenue']:
+                        if 'id' in ref['publicationVenue']:
+                            if ref['publicationVenue']['id'] in ref_venues:
+                                ref_venues[ref['publicationVenue']['id']] = ref_venues[ref['publicationVenue']['id']] + 1
+                            else:
+                                ref_venues[ref['publicationVenue']['id']] = + 1
+                            if ref['publicationVenue']['id'] in ref_venues_per_year[y]:
+                                ref_venues_per_year[y][ref['publicationVenue']['id']] = ref_venues_per_year[y][ref['publicationVenue']['id']] + 1
+                            else:
+                                ref_venues_per_year[y][ref['publicationVenue']['id']] = + 1
+                            if ref['publicationVenue']['id'] not in pub_venues:
+                                if 'alternate_names' in ref['publicationVenue']:
+                                    pub_venues[ref['publicationVenue']['id']] = ref['publicationVenue']['alternate_names']
+                                else:
+                                    pub_venues[ref['publicationVenue']['id']] = ref['publicationVenue']['name']
+                    if ref['s2FieldsOfStudy']:
+                        for fld in ref['s2FieldsOfStudy']:
+                            if fld['category'] in ref_fields:
+                                ref_fields[fld['category']] = ref_fields[fld['category']] + 1
+                            else:
+                                ref_fields[fld['category']] = 1
+                            if fld['category'] in ref_fields_per_year[y]:
+                                ref_fields_per_year[y][fld['category']] = ref_fields_per_year[y][fld['category']] + 1
+                            else:
+                                ref_fields_per_year[y][fld['category']] = 1    
+
+    ref_fields = pd.DataFrame.from_dict(ref_fields, orient='index')
+    cit_fields = pd.DataFrame.from_dict(cit_fields, orient='index')
+    ref_fields_per_year = pd.DataFrame.from_dict(ref_fields_per_year, orient='index')
+    cit_fields_per_year = pd.DataFrame.from_dict(cit_fields_per_year, orient='index')
+    ref_venues = pd.DataFrame.from_dict(ref_venues, orient='index')
+    cit_venues = pd.DataFrame.from_dict(cit_venues, orient='index')
+    ref_venues_per_year = pd.DataFrame.from_dict(ref_venues_per_year, orient='index')
+    cit_venues_per_year = pd.DataFrame.from_dict(cit_venues_per_year, orient='index')
+
+    for index,item in ref_venues.iterrows():
+        ref_venues.at[index, 'name'] = pub_venues[index]
+
+    for index,item in cit_venues.iterrows():
+        cit_venues.at[index, 'name'] = pub_venues[index]
+    
+    temp = []
+    for id in list(ref_venues_per_year.columns):
+        temp.append(' '.join(pub_venues[id]))
+    ref_venues_per_year.columns = temp
+
+    temp = []
+    for id in list(cit_venues_per_year.columns):
+        temp.append(' '.join(pub_venues[id]))
+    cit_venues_per_year.columns = temp
+    
+
+    outtxt += '\nReferences number of publication venues %d' % (len(ref_venues))
+    outtxt += '\nCitations number of publication venues %d' % (len(cit_venues))
+
+
+
+    if False:
+
+        # wordclouds title ref, title cit, tldr
+        processed_tldr = []
+        processed_cit_titles = []
+        processed_cit_titles_count = []
+        processed_ref_titles = []
+        processed_ref_titles_count = []
+
+        for index,item in bib_df.iterrows():
+            if item['scholar tldr']:
+                tldr = clean_text(item['scholar tldr']['text'], user_config)
+                processed_tldr.append(tldr)
+
+        for index,item in cit_df.iterrows():
+            if item['title']:
+                tit = clean_text(item['title'], user_config)
+                processed_cit_titles.append(tit)
+                processed_cit_titles_count.append(tit*item['count'])
+
+        for index,item in ref_df.iterrows():
+            if item['title']:
+                tit = clean_text(item['title'], user_config)
+                processed_ref_titles.append(tit)
+                processed_ref_titles_count.append(tit*item['count'])
+
+        processed_data = [('tldr', processed_tldr), ('cit_titles', processed_cit_titles), ('cit_titles_count', processed_cit_titles_count), ('ref_titles', processed_ref_titles), ('ref_titles_count', processed_ref_titles_count)]
+
+        gen_wordcloud(processed_data)
+
+
+        # scatter plot of dimensionality reduced embedding with citation count
+        embedding_list = []
+        embedding_year_list = []
+        embedding_cit_count_list = []
+        embedding_inf_cit_count_list = []
+    
+        for index,item in bib_df.iterrows():
+            if item['year'] not in years_rel:
+                continue
+            if 'vector' in item['scholar embedding']:
+                embedding_list.append(item['scholar embedding']['vector'])
+                embedding_year_list.append(item['year'])
+                embedding_cit_count_list.append(item['scholar citation count'])
+                embedding_inf_cit_count_list.append(item['scholar influential citation count'])
+
+        embedding_array = np.array(embedding_list) 
+        embedding_year_array = np.array(embedding_year_list) 
+        embedding_cit_count_array = np.array(embedding_cit_count_list)
+        embedding_inf_cit_count_array = np.array(embedding_inf_cit_count_list)   
+
+        embedding_dr = TSNE(n_components=2, learning_rate='auto',init='random', perplexity=25).fit_transform(embedding_array)
+        colors = cm.nipy_spectral(np.linspace(0.03, 0.97, len(years_rel)))
+        
+        figure = plt.figure()
+        figure.set_size_inches(8, 8)
+        for y, c in zip(years_rel, colors):
+            indexes = np.where(embedding_year_array == y)
+            plt.scatter(embedding_dr[indexes,0],embedding_dr[indexes,1],label=y, color=c, s=embedding_cit_count_array[indexes]+2)
+        plt.axis('off')
+        plt.savefig('./output/reduced_embedding_scatter_cit.png', dpi=150)
+        figure.set_size_inches(8, 16)
+        plt.legend(loc='best', frameon=False)
+        plt.savefig('./output/reduced_embedding_scatter_cit_leg.png', dpi=150)
+
+
+
+#######################################################################################################################
+
+
 
     print('### DEBUG ###')
     print(outtxt)
 
-    with open('./output/bibliography.txt', 'w') as text_file:
+    with open('./output/bibliometric.txt', 'w') as text_file:
         text_file.write(outtxt)
 
-    with pd.ExcelWriter('./output/bibliography.xlsx') as writer:
+    with pd.ExcelWriter('./output/bibliometric.xlsx') as writer:
         papers_per_year.to_excel(writer, sheet_name='Papers per year', header=True)
-        citations_per_year.to_excel(writer, sheet_name='Citations per year', header=True)
         references_per_year.to_excel(writer, sheet_name='References per year', header=True)
+        citations_per_year.to_excel(writer, sheet_name='Citations per year', header=True)
+        papers_by_references.to_excel(writer, sheet_name='Papers by references', header=False)
+        papers_by_citations.to_excel(writer, sheet_name='Papers by citations', header=False)
+        references_age_distr_relative.to_excel(writer, sheet_name='Reference rel. age dist', header=False)
+        citations_age_distr_relative.to_excel(writer, sheet_name='Citation rel. age dist', header=False)
+        references_age_distr_relative_year.to_excel(writer, sheet_name='Reference rel. age by year dist', header=True)
+        citations_age_distr_relative_year.to_excel(writer, sheet_name='Citation rel. age by year dist', header=True)
+        ref_fields.to_excel(writer, sheet_name='Reference fields distr', header=False)
+        cit_fields.to_excel(writer, sheet_name='Citation fields distr', header=False)
+        ref_fields_per_year.to_excel(writer, sheet_name='Reference fields distr per year', header=True)
+        cit_fields_per_year.to_excel(writer, sheet_name='Citation fields distr per year', header=True)
+        ref_venues.to_excel(writer, sheet_name='Reference pub venues', header=False)
+        cit_venues.to_excel(writer, sheet_name='Citation pub venues', header=False)
+        ref_venues_per_year.to_excel(writer, sheet_name='Reference pub venues per year', header=True)
+        cit_venues_per_year.to_excel(writer, sheet_name='Citation pub venue per year', header=True)
 
-    print('\nGenerated bibliography.txt and bibliography.xlsx in ./output!')
 
+    print('\nGenerated bibliometric.txt and bibliometric.xlsx in ./output!')
 
 # Functions for generating stat-specific metrics
 def stats_papers(bib_df):
@@ -903,9 +1152,9 @@ if __name__ == "__main__":
     bib_df = load_bib_csv('./output/export.csv',user_config[3])
     cit_df, ref_df, auth_df = generate_cit_ref_auth_df(bib_df)
 
-    #answer = boolify(input("\nGenerate bibliography statistics? (y/N): "))
+    #answer = boolify(input("\nGenerate bibliometric statistics? (y/N): "))
     #if answer:
-    stats_papers_out = stats_bibliography(bib_df, cit_df, ref_df, auth_df)
+    stats_papers_out = stats_bibliometric(bib_df, cit_df, ref_df, auth_df)
     sys.exit(1)
     #stats_papers(bib_df)
 
