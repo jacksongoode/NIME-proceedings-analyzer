@@ -324,7 +324,7 @@ def stats_papers(bib_df):
     with open('./output/papers.txt', 'w') as text_file:
         text_file.write(outtxt)
 
-    print('\nGenerated papers.txt and papers.xlsx in ./output!')
+    pa_print.nprint('\nGenerated papers.txt and papers.xlsx in ./output!')
 
 def stats_authors(bib_df):
 
@@ -485,7 +485,7 @@ def stats_authors(bib_df):
     with open('./output/authors.txt', 'w') as text_file:
         text_file.write(outtxt)
 
-    print('\nGenerated authors.txt and authors.xlsx in ./output!')
+    pa_print.nprint('\nGenerated authors.txt and authors.xlsx in ./output!')
 
 def stats_affiliation(bib_df, conf_df):
 
@@ -590,7 +590,7 @@ def stats_affiliation(bib_df, conf_df):
     with open('./output/affiliations.txt', 'w') as text_file:
         text_file.write(outtxt)
 
-    print('\nGenerated affiliations.txt and affiliations.xlsx in ./output!')
+    pa_print.nprint('\nGenerated affiliations.txt and affiliations.xlsx in ./output!')
 
 def stats_travel(bib_df, conf_df):
 
@@ -653,7 +653,7 @@ def stats_travel(bib_df, conf_df):
     with open('./output/travel.txt', 'w') as text_file:
         text_file.write(outtxt)
 
-    print('\nGenerated travel.txt and travel.xlsx in ./output!')
+    pa_print.nprint('\nGenerated travel.txt and travel.xlsx in ./output!')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze the metadata stored in the output/export.csv')

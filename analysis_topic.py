@@ -166,7 +166,7 @@ def gen_wordcloud(processed_data):
         plt.imshow(wc, interpolation='bilinear')
         plt.axis("off")
         plt.savefig(f'./output/wordcloud_{data[0]}.png', dpi=300)
-    pa_print.nprint('Generated .png files in ./output!')
+    pa_print.nprint('\nGenerated .png files in ./output!')
 
 def gen_topic_plots(corpus, lda_model, year_dict, year_list, year_start, year_end):
     year_counts = np.zeros(year_end-year_start)
