@@ -611,7 +611,7 @@ def stats_bibliometric(bib_df, cit_df, ref_df, auth_df):
             ref_cit_df.at[idx, 'ref+cit count'] = ref_cit_df.at[idx, 'count'] + ref_cit_df.at[idx, 'cit count']
             idx = idx + 1
     
-    ref_cit_df.columns.str.replace('count', 'ref count')
+    ref_cit_df = ref_cit_df.rename(columns = {'count':'ref count'})
     ref_cit_df = ref_cit_df.drop(columns=['count x cit', 'count_year'])
 
     outtxt += '\nNumber of papers in both references and citations %d out of which %d in NIME' % (len(ref_cit_df.index), len(ref_cit_df[ref_cit_df['in NIME'] ==  True]))
