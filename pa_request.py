@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2023 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,20 +42,30 @@ from pa_utils import try_index
 geocoder = OpenCageGeocode('c55bcffbb38246aab6e54c136a5fac75')
 email_regex = re.compile(r'@[a-zA-Z0-9-–]+\.[a-zA-Z0-9-–.]+')
 
-def scholar_api_paper_search(query):
+def scholar_api_paper_search(query,key,sleep):
     api = 'https://api.semanticscholar.org/graph/v1/paper/search?query='
     fields = '&fields=authors,title,year,citationCount,influentialCitationCount'
-    query_result = requests.get(api+query+fields).json()
-    time.sleep(3) # max 100 requests per 5 minute
+    if key != '':
+        api_key = '&x-api-key='+key
+        query_result = requests.get(api+query+fields+api_key).json()
+        time.sleep(sleep)
+    else:
+        query_result = requests.get(api+query+fields).json()
+        time.sleep(0.06) # default max 5000 requests per 5 minute
     return query_result
 
-def scholar_api_paper_lookup(paper_id):
+def scholar_api_paper_lookup(paper_id,key,sleep):
     api = 'https://api.semanticscholar.org/graph/v1/paper/'
     cit = 'citations.authors,citations.title,citations.year,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal,citations.publicationVenue'
     ref = 'references.authors,references.title,references.year,references.s2FieldsOfStudy,references.publicationTypes,references.journal,references.publicationVenue'
     fields = '?fields=title,authors,paperId,embedding,s2FieldsOfStudy,publicationTypes,publicationVenue,tldr,'+cit+','+ref             
-    query_result = requests.get(api+paper_id+fields).json()
-    time.sleep(3) # max 100 requests per 5 minute
+    if key != '':
+        api_key = '&x-api-key='+key
+        query_result = requests.get(api+paper_id+fields+api_key).json()
+        time.sleep(sleep)
+    else:
+        query_result = requests.get(api+paper_id+fields).json()
+        time.sleep(0.06) # default max 5000 requests per 5 minute
     return query_result
 
 def request_scholar(pub, args):
@@ -137,8 +147,7 @@ def request_scholar(pub, args):
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
             try:
-                query_result = scholar_api_paper_search(scholar_query)
-
+                query_result = scholar_api_paper_search(scholar_query,args.key,args.sleep)
             except Exception as e:
                 query_result = {'results' : {}}
                 err_info = 'x - While querying Semantic Scholar an exception of type {0} occurred.\nArguments:\n{1!r}.'
@@ -166,7 +175,7 @@ def request_scholar(pub, args):
 
                         if pub['scholar paper id'] not in scholar_cache or args.citations:
                             pa_print.tprint(f'\nSemantic Scholar paper lookup...')
-                            lookup_result = scholar_api_paper_lookup(pub['scholar paper id'])
+                            lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.key,args.sleep)
                             scholar_cache[pub['scholar paper id']] = lookup_result
                             if 'embedding' in lookup_result:
                                 pub['scholar embedding'] = lookup_result['embedding']
@@ -199,7 +208,6 @@ def request_scholar(pub, args):
 
     else:
         if scholar_cache[full_query] != 'N/A':
-            print('####DEBUG2####',scholar_cache[full_query])
             pub['scholar citation count'] = scholar_cache[full_query]['data'][0]['citationCount']
             pub['scholar influential citation count'] = scholar_cache[full_query]['data'][0]['influentialCitationCount']
             pub['scholar paper id'] = scholar_cache[full_query]['data'][0]['paperId']

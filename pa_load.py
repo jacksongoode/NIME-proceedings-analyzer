@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2023 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ bibtex_url = 'http://nime-conference.github.io/NIME-bibliography/nime_papers.bib
 unidomains_url = 'https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json'
 pub2tei_url = 'https://github.com/kermitt2/Pub2TEI/archive/refs/heads/master.zip'
 
-unused_cols = ['ID', 'ENTRYTYPE', 'doi', 'annote', 'booktitle', 'editor', 'date', 'date-modified',
+unused_cols = ['ENTRYTYPE', 'doi', 'annote', 'booktitle', 'editor', 'date', 'date-modified',
                'editor', 'isbn', 'issn', 'month', 'publisher', 'rating', 'series', 'track', 'pages',
                'presentation-video', 'urlsuppl1', 'urlsuppl2', 'urlsuppl3', 'volume']
 pdf_src = os.getcwd()+'/cache/pdf/'
@@ -79,6 +79,10 @@ def prep(args):
     # Copy corrected into pdf
     for f in [f for f in os.listdir('./resources/corrected') if f.endswith('.pdf')]:
         shutil.copy(os.path.join('./resources/corrected', f), './cache/pdf')
+
+    # Copy pubpub into pdf
+    for f in [f for f in os.listdir('./resources/pubpub') if f.endswith('.pdf')]:
+        shutil.copy(os.path.join('./resources/pubpub', f), './cache/pdf')
 
     #Pub2TEI download
     if not os.path.exists('./resources/Pub2TEI/Samples/saxon9he.jar'):
@@ -141,6 +145,7 @@ def extract_bibtex(bib_db, args):
     '''Extracts publications from a bibtex file'''
     print('\nExtracting BibTeX...')
     for index, pub in enumerate(tqdm(bib_db)):
+        
         pub = defaultdict(lambda: [], pub)  # ? needed?
         pa_extract.extract_bib(pub, args)
 
@@ -149,6 +154,7 @@ def extract_bibtex(bib_db, args):
                 del pub[col]
 
         bib_db[index] = pub  # reinsert trimmed pub
+
     return bib_db
 
 
@@ -164,7 +170,6 @@ def check_xml(bib_db, jats=False, overwrite=False):
 
     def download_url(url, fn, dl_path):
         session = get_session()
-
         try:
             with session.get(url) as r:
                 print(f'Downloading {url}...')

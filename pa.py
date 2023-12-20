@@ -1,5 +1,5 @@
 # NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2023 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ from pa_load import prep, load_unidomains, load_bibtex, extract_bibtex, check_xm
 # Variables/paths
 bibtex_path = os.getcwd()+'/cache/bibtex/nime_papers.bib'
 unidomains_path = os.getcwd()+'/cache/json/unidomains.json'
-pubpub_urls = ['pubpub.org', 'doi.org']
+pubpub_years = ['2021', '2022']
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze a publication given a BibTeX and directory of pdf documents')
@@ -57,7 +57,13 @@ if __name__ == "__main__":
                         help='deletes cache')
     parser.add_argument('-n', '--nime', action='store_true', default=False,
                         help='uses NIME based corrections')
-
+    parser.add_argument('-p', '--pdf', action='store_true', default=False,
+                        help='use manually downloaded pdf for PubPub publications')
+    parser.add_argument('-k', '--key', type=str, default='',
+                       help='Semantic Scholar API key')
+    parser.add_argument('-s', '--sleep', type=float, default=3,
+                        help='sleep time (sec) between Semantic Scholar API calls')
+    
     args = parser.parse_args()
 
     # * Set global print command
@@ -86,9 +92,14 @@ if __name__ == "__main__":
     for _, pub in enumerate(iterator):
         pa_print.tprint(f"\n--- Now on: {pub['title']} ---")
 
-        # Extract text from pdf if not PubPub
-        if not any(p in pub['url'] for p in pubpub_urls):
+        # check if on PubPub
+        if pub['year'] not in pubpub_years:
             pub['puppub'] = False
+        else:
+            pub['puppub'] = True
+        
+        # Extract text from pdf if not PubPub or if forced to manually downloaded pdf
+        if pub['puppub'] == False or args.pdf:
             doc = extract_text(pub)
             errored = doc_quality(doc, pub, 'text') # check for errors
 
@@ -98,7 +109,6 @@ if __name__ == "__main__":
             else:
                 author_info = []
         else:
-            pub['puppub'] = True
             author_info = []
 
         # Extract doc from Grobid

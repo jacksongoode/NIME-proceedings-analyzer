@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2023 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

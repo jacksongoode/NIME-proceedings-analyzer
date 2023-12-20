@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2023 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -83,10 +83,11 @@ def extract_bib(pub, args):
     pub['author count'] = author_count
 
     bad_names = ['professor', 'dr.'] # names to remove
-    allowed_names = ['d\'', 'di', 'da', 'de', 'do', 'du', 'des', 'af', 'von', 'van', 'los', 'mc', 'of', 'zu']
+    allowed_names = ['d\'', 'di', 'da', 'de', 'do', 'du', 'des', 'af', 'von', 'van', 'los', 'mc', 'of', 'zu','o\'']
     regexname = re.compile(r'[^a-zA-Z- ]')
 
     for _, author in enumerate(authors): # break up names
+        
         first = unidecode(author.split(', ', 1)[-1] if ', ' in author else author.split(' ', 1)[0])
         last = unidecode(author.split(', ', 1)[0] if ', ' in author else author.split(' ', 1)[-1])
 
@@ -102,7 +103,7 @@ def extract_bib(pub, args):
         first = regexname.sub('', first)
 
         # Last name
-        if last[:2].lower() != 'd\'':
+        if last[:2].lower() not in ['d\'','o\'']:
             last = [part for part in last.split(' ') if not part.lower() in bad_names]
             if str.lower(last[0]) in allowed_names:
                 last = ' '.join(last)
@@ -192,6 +193,9 @@ def extract_bib(pub, args):
     # Age of papers
     pub['age'] = datetime.datetime.now().year - int(pub['year'])
 
+    # ID
+    #pub['ID'] = 
+
 def download_pdf(pdf_path, pub):
     pa_print.tprint('\nLocal PDF not found - downloading...')
     url = pub['url']
@@ -212,7 +216,11 @@ def extract_text(pub):
 
     :publication (article) from database
     '''
-    pdf_fn = pub['url'].split('/')[-1]
+    if pub['puppub'] == False:
+        pdf_fn = pub['url'].split('/')[-1]
+    else:
+        pdf_fn = pub['ID']+'.pdf'
+
     pdf_path = pdf_src + pdf_fn
 
     # Allows for override of corrupted pdfs
