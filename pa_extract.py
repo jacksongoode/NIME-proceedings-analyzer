@@ -223,8 +223,6 @@ def extract_text(pub):
 
     pdf_path = pdf_src + pdf_fn
 
-    print('####### DEBUGGGG PUBPUB',pub['puppub'])
-    print('####### DEBUGGGG FILE PATH',pdf_path)
     # Allows for override of corrupted pdfs
     if os.path.isfile(pdf_path):
         pass
@@ -240,12 +238,6 @@ def extract_text(pub):
                 parser = PDFParser(pdf)
                 document = PDFDocument(parser)
             except Exception as e:
-                print('####### DEBUG ECEPTION', e)
-                print('####### DEBUG ECEPTION', e)
-                print('####### DEBUG ECEPTION', e)
-                print('####### DEBUG ECEPTION', e)
-                print('####### DEBUG ECEPTION', e)
-                print('####### DEBUG ECEPTION', e)
                 if check is True:
                     raise PSSyntaxError(f'{pdf_path} appears to be malformed and pdf cannot repair it.')
                 pa_print.tprint(str(e))
@@ -300,10 +292,7 @@ def extract_grobid(pub, bib_db, iterator, args):
 
     xml_path = xml_src + xml_name
 
-    print('########### CHECK XML', xml_path)
-
     if os.path.exists(xml_path):
-        print('########### EXIST XML', xml_path)
         with open(xml_path, 'r') as tei:
             soup = BeautifulSoup(tei, "lxml-xml")
 
@@ -373,10 +362,8 @@ def extract_grobid(pub, bib_db, iterator, args):
 
         return grob_text
     elif os.path.exists(f"./cache/pdf/unconvertable_pdfs/{xml_name.split('.')[0]}.pdf"):
-        print('########### UNCONVERTABLE XML', xml_path)
         pass
     else: # No XML - populate
-        print('########### DONT XML', xml_path)
         pa_print.tprint('\nGrobid XML does not exist for paper!')
         if pub['puppub'] == False or args.pdf:
             check_xml(bib_db, args=args)
