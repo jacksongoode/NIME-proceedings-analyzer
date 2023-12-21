@@ -163,7 +163,7 @@ def extract_bibtex(bib_db, args):
     return bib_db
 
 
-def check_xml(bib_db, args, jats=False, overwrite=False, ):
+def check_xml(bib_db, args, jats=False, overwrite=False):
     ''' Repopulate Grobid files, downloads PDFs if needed
 
     :bib_db from bibtex file
@@ -265,10 +265,9 @@ def check_xml(bib_db, args, jats=False, overwrite=False, ):
             for pdf in unconverted_pdfs:
                 shutil.move(f'./cache/pdf/{pdf}', f'./cache/pdf/unconvertable_pdfs/{pdf}')
         else:
-            print('####DEBUG BYPASS GROBID')
-            #answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
-            #if answer:
-            #    generate_grobid(True)
+            answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
+            if answer:
+                generate_grobid(True)
 
 
 def generate_teis(missing_jats):
