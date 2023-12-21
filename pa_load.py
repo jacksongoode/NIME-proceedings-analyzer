@@ -197,7 +197,7 @@ def check_xml(bib_db, args, jats=False, overwrite=False, ):
         # Download XML and PDFs that don't exist yet
         missing_files = set(f_dict.keys()) - set(files)
         f_dict = {k:v for k, v in f_dict.items() if k in missing_files}
-        print(f'\nMissing {len(f_dict)} files - downloading..')
+        print(f'\nMissing {len(f_dict)} files:',missing_files,'- downloading..')
 
         # Multithread downloads - with urls (values) and fn's (keys)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
