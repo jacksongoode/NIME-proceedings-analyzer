@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # * Loop here for Grobid/PDF population
     if args.grobid:
-        check_xml(bib_db, True)
+        check_xml(bib_db, jats=True, args=args)
 
     # * Parse data through pdfs
     print('\nExtracting and parsing publication data...')
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             author_info = []
 
         # Extract doc from Grobid
-        doc = extract_grobid(pub, bib_db, iterator)
+        doc = extract_grobid(pub, bib_db, iterator, args)
         doc_quality(doc, pub, 'grobid')
 
         # Get university from various sources
@@ -128,7 +128,7 @@ if __name__ == "__main__":
         request_scholar(pub, args)
 
         # Post processing modifications
-        post_processing(pub)
+        post_processing(pub, args)
 
         # Save for every paper
         csv_save(bib_db)

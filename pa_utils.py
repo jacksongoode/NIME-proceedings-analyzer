@@ -201,7 +201,7 @@ def boolify(ans, default=False):
         ans = default
     return ans
 
-def post_processing(pub):
+def post_processing(pub, args):
     col_countries, col_continents, col_institutions = [], [], []
     empty = [float('nan'), 'N/A']
     full_text = ''

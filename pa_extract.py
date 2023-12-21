@@ -223,6 +223,8 @@ def extract_text(pub):
 
     pdf_path = pdf_src + pdf_fn
 
+    print('####### DEBUGGGG PUBPUB',pub['puppub'])
+    print('####### DEBUGGGG FILE PATH',pdf_path)
     # Allows for override of corrupted pdfs
     if os.path.isfile(pdf_path):
         pass
@@ -238,6 +240,12 @@ def extract_text(pub):
                 parser = PDFParser(pdf)
                 document = PDFDocument(parser)
             except Exception as e:
+                print('####### DEBUG ECEPTION', e)
+                print('####### DEBUG ECEPTION', e)
+                print('####### DEBUG ECEPTION', e)
+                print('####### DEBUG ECEPTION', e)
+                print('####### DEBUG ECEPTION', e)
+                print('####### DEBUG ECEPTION', e)
                 if check is True:
                     raise PSSyntaxError(f'{pdf_path} appears to be malformed and pdf cannot repair it.')
                 pa_print.tprint(str(e))
@@ -271,7 +279,7 @@ def extract_text(pub):
 
         return doc
 
-def extract_grobid(pub, bib_db, iterator):
+def extract_grobid(pub, bib_db, iterator, args):
     '''Parse xml files output from Grobid service (3rd party utility needed to generate files)
 
     :publication (article) from database
@@ -283,13 +291,19 @@ def extract_grobid(pub, bib_db, iterator):
             return fill
 
     if pub['puppub']:
-        xml_name = f"nime{pub['year']}_{pub['articleno']}.xml"
+        if args.pdf:
+            xml_name = f"{pub['ID']}.grobid.tei.xml"
+        else:
+            xml_name = f"nime{pub['year']}_{pub['articleno']}.xml"
     else:
-        xml_name = pub['url'].split('/')[-1].split('.')[0]+'.tei.xml'
+        xml_name = pub['url'].split('/')[-1].split('.')[0]+'.grobid.tei.xml'
 
     xml_path = xml_src + xml_name
 
+    print('########### CHECK XML', xml_path)
+
     if os.path.exists(xml_path):
+        print('########### EXIST XML', xml_path)
         with open(xml_path, 'r') as tei:
             soup = BeautifulSoup(tei, "lxml-xml")
 
@@ -359,13 +373,15 @@ def extract_grobid(pub, bib_db, iterator):
 
         return grob_text
     elif os.path.exists(f"./cache/pdf/unconvertable_pdfs/{xml_name.split('.')[0]}.pdf"):
+        print('########### UNCONVERTABLE XML', xml_path)
         pass
     else: # No XML - populate
+        print('########### DONT XML', xml_path)
         pa_print.tprint('\nGrobid XML does not exist for paper!')
-        if pub['puppub']:
-            check_xml(bib_db, jats=True)
+        if pub['puppub'] == False or args.pdf:
+            check_xml(bib_db, args=args)
         else:
-            check_xml(bib_db)
+            check_xml(bib_db, jats=True, args=args)    
         iterator.clear()
         iterator.refresh()
 

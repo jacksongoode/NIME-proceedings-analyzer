@@ -229,6 +229,8 @@ def request_scholar(pub, args):
 
     # Average citations per year of age
     if pub['scholar citation count'] != 'N/A':
+        if pub['age'] == 0:
+            pub['age'] = 1
         pub['scholar yearly citations'] = int(pub['scholar citation count']) / pub['age']
     else: pub['scholar yearly citations'] = 'N/A'
 

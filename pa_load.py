@@ -54,6 +54,7 @@ pub2tei_url = 'https://github.com/kermitt2/Pub2TEI/archive/refs/heads/master.zip
 unused_cols = ['ENTRYTYPE', 'doi', 'annote', 'booktitle', 'editor', 'date', 'date-modified',
                'editor', 'isbn', 'issn', 'month', 'publisher', 'rating', 'series', 'track', 'pages',
                'presentation-video', 'urlsuppl1', 'urlsuppl2', 'urlsuppl3', 'volume']
+
 pdf_src = os.getcwd()+'/cache/pdf/'
 xml_src = os.getcwd()+'/cache/xml/'
 jats_src = os.getcwd()+'/cache/jats/'
@@ -76,9 +77,13 @@ def prep(args):
                    './output/', './resources/corrected/', '.resources/Pub2TEI']:
         os.makedirs(os.path.dirname(f'{folder}'), exist_ok=True)
 
-    # Copy corrected into pdf
+    # Copy corrected pdf into cache
     for f in [f for f in os.listdir('./resources/corrected') if f.endswith('.pdf')]:
         shutil.copy(os.path.join('./resources/corrected', f), './cache/pdf')
+
+    # Copy corrected xml into cache
+    for f in [f for f in os.listdir('./resources/corrected') if f.endswith('.xml')]:
+        shutil.copy(os.path.join('./resources/corrected', f), './cache/temp_jats')
 
     # Copy pubpub into pdf
     for f in [f for f in os.listdir('./resources/pubpub') if f.endswith('.pdf')]:
@@ -158,7 +163,7 @@ def extract_bibtex(bib_db, args):
     return bib_db
 
 
-def check_xml(bib_db, jats=False, overwrite=False):
+def check_xml(bib_db, args, jats=False, overwrite=False, ):
     ''' Repopulate Grobid files, downloads PDFs if needed
 
     :bib_db from bibtex file
@@ -242,8 +247,8 @@ def check_xml(bib_db, jats=False, overwrite=False):
             multithread_dls(unconverted_pdfs, pdf_dict, pdf_src)
 
         # Find what XMLs need to be downloaded
-        check_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in pdf_dict.keys()]
-        skip_xmls = [pdf.split('.')[0]+'.tei.xml' for pdf in bad_pdfs]
+        check_xmls = [pdf.split('.')[0]+'.grobid.tei.xml' for pdf in pdf_dict.keys()]
+        skip_xmls = [pdf.split('.')[0]+'.grobid.tei.xml' for pdf in bad_pdfs]
         missing_xmls = list(set(check_xmls) - set(xmls) - set(skip_xmls))
 
         if len(missing_xmls) > 0:
@@ -260,9 +265,10 @@ def check_xml(bib_db, jats=False, overwrite=False):
             for pdf in unconverted_pdfs:
                 shutil.move(f'./cache/pdf/{pdf}', f'./cache/pdf/unconvertable_pdfs/{pdf}')
         else:
-            answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
-            if answer:
-                generate_grobid(True)
+            print('####DEBUG BYPASS GROBID')
+            #answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
+            #if answer:
+            #    generate_grobid(True)
 
 
 def generate_teis(missing_jats):
@@ -292,9 +298,12 @@ def generate_grobid(overwrite=False):
     ''' Convert a pdf to a .tei.xml file via Grobid
 
     '''
-    base = 'https://github.com/kermitt2/grobid/'
+
     # Get latest Grobid release
-    version = requests.get(base+'releases/latest').url.split('/')[-1]
+    base = 'https://github.com/kermitt2/grobid/'
+    version = requests.get(base+'/releases/latest').url.split('/')[-1]
+    
+    #version = requests.get('https://github.com/kermitt2/grobid/releases/tag/0.7.2').url.split('/')[-1] # Force to work with Grobid 0.7.2
 
     if not os.path.exists(f'./cache/grobid-{version}'):
         print('\nInstalling Grobid!')
@@ -326,12 +335,14 @@ def generate_grobid(overwrite=False):
 
     p = subprocess.Popen(
         ['./gradlew', 'run'], cwd=f'./cache/grobid-{version}', stdout=subprocess.DEVNULL)
-    for _ in tqdm(range(20), desc='Initiating Grobid server'):
+    for _ in tqdm(range(60), desc='Initiating Grobid server'):
         time.sleep(1)  # wait for Grodid to run, might need to be longer
 
     if overwrite:
         shutil.rmtree('./cache/xml')
 
     client = GrobidClient(config_path='./resources/config.json')
-    client.process('processFulltextDocument', pdf_src, tei_coordinates=False, output=xml_src, force=overwrite)
+    client.process('processFulltextDocument', pdf_src[:-1], output=xml_src, consolidate_citations=True, tei_coordinates=True, force=True)
     p.terminate()
+
+    subprocess.run(['./gradlew', '--stop'], cwd=f'./cache/grobid-{version}', stderr=subprocess.DEVNULL)
