@@ -56,7 +56,7 @@ def calculate_carbon(pub):
 
     pa_print.tprint('\nCalculating carbon footprint...')
     for author in range(author_count):
-        if pub['author location info'][author] != 'N/A':
+        if pub['author location info'][author] != 'N/A' and pub['conference location info'][0] != 'N/A':
             distance = geodesic(pub['author location info'][author][2], pub['conference location info'][0][2]).km
             pub['author distances'].append(distance)
 
@@ -85,7 +85,7 @@ def fill_empty(pub):
     '''
     author_count = pub['author count']
 
-    # * citation numer and conference location info should be filled regardless
+    # * citation number and conference location info should be filled regardless
     # * author distances, author footprints, author loc queries, and author location info are filled elsewhere - issue #10
     # ? even if file is corrupt there may be some relevant info
     for entry in ['author infos', 'grobid addresses', 'grobid author names', 'grobid author unis', 'grobid emails', 'grobid organisations', 'text author unis']:
