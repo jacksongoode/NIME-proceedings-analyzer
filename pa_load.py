@@ -91,7 +91,7 @@ def prep(args):
 
     #Pub2TEI download
     if not os.path.exists('./resources/Pub2TEI/Samples/saxon9he.jar'):
-        print('Downloading Pub2TEI utility...')
+        pa_print.tprint('Downloading Pub2TEI utility...')
         zip_path, _ = urllib.request.urlretrieve(pub2tei_url)
         with zipfile.ZipFile(zip_path, 'r') as f:
             f.extractall('./resources/')
@@ -148,7 +148,7 @@ def load_bibtex(path):
 
 def extract_bibtex(bib_db, args):
     '''Extracts publications from a bibtex file'''
-    print('\nExtracting BibTeX...')
+    pa_print.tprint('\nExtracting BibTeX...')
     for index, pub in enumerate(tqdm(bib_db)):
         
         pub = defaultdict(lambda: [], pub)  # ? needed?
@@ -177,7 +177,7 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
         session = get_session()
         try:
             with session.get(url) as r:
-                print(f'Downloading {url}...')
+                pa_print.tprint(f'Downloading {url}...')
                 if r.status_code == requests.codes.ok:
                     # Redirect if PubPub url
                     if pub['puppub'] and '.xml' not in url:
@@ -186,18 +186,18 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
                     open(dl_path + fn, 'wb').write(r.content)
                     time.sleep(0.1) # delay querying to avoid overwhelming
                 else:
-                    print(f'\nFailed to download {url}'
+                    pa_print.tprint(f'\nFailed to download {url}'
                         '\nRun the script again to attempt re-downloading the file.'
                         f'\nIf the problem persists, download the file manually and save it in resources/corrected as {fn}.\n')
                     quit()
         except Exception as e:
-            print("Error downloading: ", e)
+            pa_print.tprint("Error downloading: ", e)
 
     def multithread_dls(files, f_dict, dl_path):
         # Download XML and PDFs that don't exist yet
         missing_files = set(f_dict.keys()) - set(files)
         f_dict = {k:v for k, v in f_dict.items() if k in missing_files}
-        print(f'\nMissing {len(f_dict)} files:',missing_files,'- downloading..')
+        pa_print.tprint(f'\nMissing {len(f_dict)} files:',missing_files,'- downloading..')
 
         # Multithread downloads - with urls (values) and fn's (keys)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -207,7 +207,7 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
     thread_local = threading.local()
 
     if jats:
-        print('\nChecking for missing PubPub XMLs!')
+        pa_print.tprint('\nChecking for missing PubPub XMLs!')
         jats = os.listdir(jats_src)
         jats_dict = {}
         jats_db = [pub for pub in bib_db if pub['puppub']]
@@ -219,11 +219,11 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
         missing_jats = list(set(jats_dict.keys()) - set(xmls))
 
         if len(missing_jats) > 0:
-            print(f'Found {len(missing_jats)} PubPub XMLs unconverted - converting!')
+            pa_print.tprint(f'Found {len(missing_jats)} PubPub XMLs unconverted - converting!')
             generate_teis(missing_jats)
 
     else:
-        print('\nChecking for missing PDFs!')
+        pa_print.tprint('\nChecking for missing PDFs!')
         # Save unconverted pdfs but merge with unconvertable pdfs
         unconverted_pdfs = os.listdir(pdf_src)
         pdfs = unconverted_pdfs
@@ -252,14 +252,14 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
         missing_xmls = list(set(check_xmls) - set(xmls) - set(skip_xmls))
 
         if len(missing_xmls) > 0:
-            print(f'Found {len(missing_xmls)} PDFs unconverted - converting!')
+            pa_print.tprint(f'Found {len(missing_xmls)} PDFs unconverted - converting!')
             generate_grobid(overwrite)
 
             # Check for failed xml converts and move
             xmls = os.listdir(xml_src)
             missing_xmls = list(set(check_xmls) - set(xmls))
             unconverted_pdfs = [xml.split('.')[0]+'.pdf' for xml in missing_xmls]
-            print(f'{len(unconverted_pdfs)} PDFs were unable to be converted!')
+            pa_print.tprint(f'{len(unconverted_pdfs)} PDFs were unable to be converted!')
 
             os.makedirs('./cache/pdf/unconvertable_pdfs', exist_ok=True)
             for pdf in unconverted_pdfs:
@@ -276,7 +276,7 @@ def generate_teis(missing_jats):
     for f in missing_jats:
         os.renames(jats_src+f, temp_dir+f)
     try:
-        print('\nConverting XMLs from JAR to TEI!')
+        pa_print.tprint('\nConverting XMLs from JAR to TEI!')
         oschmod.set_mode('./resources/Pub2TEI/Samples/saxon9he.jar', '+x')
         xslt_args = ['--parserFeature?uri=http%3A//apache.org/xml/features/nonvalidating/load-external-dtd:false',
                     '-dtd:off', '-a:off', '-expand:off',
@@ -285,7 +285,7 @@ def generate_teis(missing_jats):
                     f'-o:{xml_src}']
         subprocess.run(['java', '-jar', './Samples/saxon9he.jar', *xslt_args], cwd='./resources/Pub2TEI')
     except Exception as e:
-        print('An error occured:', e)
+        pa_print.tprint('An error occured:', e)
         quit()
 
     # Return xmls to jar dir
@@ -305,15 +305,15 @@ def generate_grobid(overwrite=False):
     #version = requests.get('https://github.com/kermitt2/grobid/releases/tag/0.7.2').url.split('/')[-1] # Force to work with Grobid 0.7.2
 
     if not os.path.exists(f'./cache/grobid-{version}'):
-        print('\nInstalling Grobid!')
+        pa_print.tprint('\nInstalling Grobid!')
         try:
-            print('Downloading and extracting...')
+            pa_print.tprint('Downloading and extracting...')
             zip_path, _ = urllib.request.urlretrieve(
                 f'{base}archive/refs/tags/{version}.zip')
             with zipfile.ZipFile(zip_path, 'r') as f:
                 f.extractall('./cache')
 
-            print('Installing...')
+            pa_print.tprint('Installing...')
             oschmod.set_mode(f'./cache/grobid-{version}/gradlew', '+x')
             subprocess.run(f'cd ./cache/grobid-{version} '
                            '&& ./gradlew clean install', shell=True)
@@ -324,10 +324,10 @@ def generate_grobid(overwrite=False):
                         oschmod.set_mode(os.path.join(root, f), '+x')
 
         except Exception as e:
-            print(e)
-            print('\nFailed to install Grobid!')
+            pa_print.tprint(e)
+            pa_print.tprint('\nFailed to install Grobid!')
 
-    print('\nConverting PDFs to XMLs via Grobid - this may take some time...')
+    pa_print.tprint('\nConverting PDFs to XMLs via Grobid - this may take some time...')
 
     # Kill untracked server if exists
     subprocess.run(['./gradlew', '--stop'], cwd=f'./cache/grobid-{version}', stderr=subprocess.DEVNULL)
