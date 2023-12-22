@@ -22,4 +22,4 @@ requests
 tqdm
 Unidecode
 wordcloud
-sklearn
+scikit-learn
