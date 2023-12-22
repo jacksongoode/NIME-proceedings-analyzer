@@ -16,7 +16,7 @@ The tool is includes four scripts:
 
 ### Requirements
 
-The NIME PA requires Python 3.7 (recommended) or higher as well as Java JDK 8 or 11.
+The NIME PA has been developed and tested using Python 3.11 (recommended), but it should work using Python 3.7 or higher. The NIME PA requires also Java JDK 1.11.
 
 Install required packages:
 
@@ -31,9 +31,10 @@ python pa.py
 python analysis_meta.py
 python analysis_topic.py
 python analysis_search.py
+python analysis_citations.py
 ```
 
-Note: For Macbooks based on arm, a the library located at `/NIME-proceedings-analyzer/cache/grobid-0.7.2/grobid-home/lib/mac-64/libwapiti.dylib` may not work properly with the device. In this case, a pre-built lib has been made available within `resources/misc/libwapiti.dylib`. This can be overwrite the installed lib if needed.
+Note: For Macbooks based on arm, a the library located at `/NIME-proceedings-analyzer/cache/grobid-{version}/grobid-home/lib/mac-64/libwapiti.dylib` may not work properly with the device. In this case, a pre-built lib has been made available within `resources/misc/libwapiti.dylib`. This can be overwrite the installed lib if needed.
 
 ## pa.py
 
@@ -165,6 +166,10 @@ The script produces the following output files:
 - _./output/wordcloud_bodies.png_
 - _./output/wordcloud_titles.png_
 - _./output/lda.html_
+
+## analysis_citations.py
+
+...coming soon...
 
 ## analysis_search.py
 
