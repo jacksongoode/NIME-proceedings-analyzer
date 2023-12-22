@@ -128,7 +128,7 @@ def request_scholar(pub, args):
     full_query = f"{title} {' '.join(author_last_list)} {pub['year']}"
     pub['scholar query'] = full_query
 
-    if full_query not in scholar_cache or args.citations:
+    if full_query not in scholar_cache:
         pa_print.tprint(f'\nQuerying Semantic Scholar...')
         last_iter = False
         queries = list(itertools.product(query_title, query_name, query_year))
@@ -173,7 +173,7 @@ def request_scholar(pub, args):
                         pub['scholar authors id'] = [t['authorId'] for t in query_result['data'][0]['authors']]
                         scholar_cache[full_query] = query_result
 
-                        if pub['scholar paper id'] not in scholar_cache or args.citations:
+                        if pub['scholar paper id'] not in scholar_cache:
                             pa_print.tprint(f'\nSemantic Scholar paper lookup...')
                             lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.key,args.sleep)
                             scholar_cache[pub['scholar paper id']] = lookup_result
@@ -201,7 +201,7 @@ def request_scholar(pub, args):
 
         if pub['scholar citation count'] == 'N/A':
             pa_print.tprint('x - Cannot find paper in Semantic Scholar')
-            scholar_cache[full_query] = 'N/A'
+            #scholar_cache[full_query] = 'N/A'
 
         with open('./cache/json/scholar_cache.json','wb') as fp:
             fp.write(orjson.dumps(scholar_cache))
