@@ -23,8 +23,8 @@
 
 # Native
 import sys
-if sys.version_info < (3, 7):
-    print("Please upgrade Python to version 3.7.0 or higher")
+if sys.version_info < (3, 11):
+    print("Please upgrade Python to version 3.11.0 or higher")
     sys.exit()
 import os
 import warnings

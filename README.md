@@ -16,7 +16,7 @@ The tool is includes four scripts:
 
 ### Requirements
 
-The NIME PA has been developed and tested using Python 3.11 (recommended), but it should work using Python 3.7 or higher. The NIME PA requires also Java JDK 1.11.
+The NIME PA has been requires Python 3.11 and Java JDK 1.11.
 
 Install required packages:
 
