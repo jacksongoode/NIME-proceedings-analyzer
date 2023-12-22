@@ -33,6 +33,7 @@ import shutil
 import concurrent.futures
 import threading
 import re
+import sys
 
 # External
 from tqdm import tqdm
@@ -58,6 +59,8 @@ unused_cols = ['ENTRYTYPE', 'doi', 'annote', 'booktitle', 'editor', 'date', 'dat
 pdf_src = os.getcwd()+'/cache/pdf/'
 xml_src = os.getcwd()+'/cache/xml/'
 jats_src = os.getcwd()+'/cache/jats/'
+
+grobid_answered = True
 
 
 def prep(args):
@@ -163,7 +166,7 @@ def extract_bibtex(bib_db, args):
     return bib_db
 
 
-def check_xml(bib_db, args, jats=False, overwrite=False):
+def check_xml(bib_db, args, jats=False, overwrite=False, pubpub_years=[]):
     ''' Repopulate Grobid files, downloads PDFs if needed
 
     :bib_db from bibtex file
@@ -197,7 +200,7 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
         # Download XML and PDFs that don't exist yet
         missing_files = set(f_dict.keys()) - set(files)
         f_dict = {k:v for k, v in f_dict.items() if k in missing_files}
-        pa_print.tprint(f'\nMissing {len(f_dict)} files:',missing_files,'- downloading..')
+        pa_print.tprint(f'\nMissing {len(f_dict)} files - Missing files: {missing_files} - downloading...')
 
         # Multithread downloads - with urls (values) and fn's (keys)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -206,7 +209,7 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
     xmls = os.listdir(xml_src)
     thread_local = threading.local()
 
-    if jats:
+    if jats and args.pdf == False:
         pa_print.tprint('\nChecking for missing PubPub XMLs!')
         jats = os.listdir(jats_src)
         jats_dict = {}
@@ -239,18 +242,33 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
 
         for pub in pdf_db:
             pdf_dict[pub['url'].split('/')[-1]] = pub['url']
+        
+        if args.pdf:
+            pubpub_db = [pub for pub in bib_db if pub['year'] in pubpub_years]
+            
+            pubpub_dict = {}
+            for pub in pubpub_db:
+                pubpub_dict[pub['ID']+'.pdf'] = pub['url'] ### URL will not be used for download
+            missing_files = set(pubpub_dict.keys()) - set(pdfs)
+            if len(missing_files) > 0:
+                pa_print.tprint(f'{len(missing_files)} PDFs from PubPub papers are missing,
+                                 manually download them to the folder ./resources/pubpub - Missing files: {missing_files}')
+                sys.exit()
 
         # Download pdfs
         missing_files = set(pdf_dict.keys()) - set(pdfs)
         if len(missing_files) > 0:
-            
             multithread_dls(unconverted_pdfs, pdf_dict, pdf_src)
 
-        # Find what XMLs need to be downloaded
+        # Find what XMLs need to be generated
         check_xmls = [pdf.split('.')[0]+'.grobid.tei.xml' for pdf in pdf_dict.keys()]
+
+        if args.pdf:
+            check_xmls = check_xmls + [pdf.split('.')[0]+'.grobid.tei.xml' for pdf in pubpub_dict.keys()]
+
         skip_xmls = [pdf.split('.')[0]+'.grobid.tei.xml' for pdf in bad_pdfs]
         missing_xmls = list(set(check_xmls) - set(xmls) - set(skip_xmls))
-
+        
         if len(missing_xmls) > 0:
             pa_print.tprint(f'Found {len(missing_xmls)} PDFs unconverted - converting!')
             generate_grobid(overwrite)
@@ -258,16 +276,22 @@ def check_xml(bib_db, args, jats=False, overwrite=False):
             # Check for failed xml converts and move
             xmls = os.listdir(xml_src)
             missing_xmls = list(set(check_xmls) - set(xmls))
+
             unconverted_pdfs = [xml.split('.')[0]+'.pdf' for xml in missing_xmls]
             pa_print.tprint(f'{len(unconverted_pdfs)} PDFs were unable to be converted!')
 
             os.makedirs('./cache/pdf/unconvertable_pdfs', exist_ok=True)
             for pdf in unconverted_pdfs:
                 shutil.move(f'./cache/pdf/{pdf}', f'./cache/pdf/unconvertable_pdfs/{pdf}')
-        else:
-            answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
-            if answer:
-                generate_grobid(True)
+
+            exit(0)
+        else:     
+            global grobid_answered
+            if grobid_answered:
+                answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
+                grobid_answered = False
+                if answer:
+                    generate_grobid(True)
 
 
 def generate_teis(missing_jats):
@@ -341,7 +365,11 @@ def generate_grobid(overwrite=False):
         shutil.rmtree('./cache/xml')
 
     client = GrobidClient(config_path='./resources/config.json')
-    client.process('processFulltextDocument', pdf_src[:-1], output=xml_src, consolidate_citations=True, tei_coordinates=True, force=True)
+
+    client.process('processFulltextDocument', pdf_src[:-1], output=xml_src, force=True,
+                   consolidate_header=True, consolidate_citations=True,
+                   include_raw_affiliations=True, include_raw_citations=True)
+
     p.terminate()
 
     subprocess.run(['./gradlew', '--stop'], cwd=f'./cache/grobid-{version}', stderr=subprocess.DEVNULL)
