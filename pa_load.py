@@ -251,8 +251,7 @@ def check_xml(bib_db, args, jats=False, overwrite=False, pubpub_years=[]):
                 pubpub_dict[pub['ID']+'.pdf'] = pub['url'] ### URL will not be used for download
             missing_files = set(pubpub_dict.keys()) - set(pdfs)
             if len(missing_files) > 0:
-                pa_print.tprint(f'{len(missing_files)} PDFs from PubPub papers are missing,
-                                 manually download them to the folder ./resources/pubpub - Missing files: {missing_files}')
+                pa_print.tprint(f'{len(missing_files)} PDFs from PubPub papers are missing, manually download them to the folder ./resources/pubpub - Missing files: {missing_files}')
                 sys.exit()
 
         # Download pdfs
