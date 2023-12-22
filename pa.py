@@ -23,8 +23,8 @@
 
 # Native
 import sys
-if sys.version_info < (3, 7):
-    print("Please upgrade Python to version 3.7.0 or higher")
+if sys.version_info < (3, 11):
+    print("Please upgrade Python to version 3.11.0 or higher")
     sys.exit()
 import os
 import argparse
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # * Loop here for Grobid/PDF population
     if args.grobid:
-        check_xml(bib_db, jats=True, args=args)
+        check_xml(bib_db, args, False, True, pubpub_years)
 
     # * Parse data through pdfs
     print('\nExtracting and parsing publication data...')
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             author_info = []
 
         # Extract doc from Grobid
-        doc = extract_grobid(pub, bib_db, iterator, args)
+        doc = extract_grobid(pub, bib_db, iterator, args, pubpub_years)
         doc_quality(doc, pub, 'grobid')
 
         # Get university from various sources
