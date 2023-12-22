@@ -271,7 +271,7 @@ def extract_text(pub):
 
         return doc
 
-def extract_grobid(pub, bib_db, iterator, args):
+def extract_grobid(pub, bib_db, iterator, args, pubpub_years):
     '''Parse xml files output from Grobid service (3rd party utility needed to generate files)
 
     :publication (article) from database
@@ -366,9 +366,9 @@ def extract_grobid(pub, bib_db, iterator, args):
     else: # No XML - populate
         pa_print.tprint('\nGrobid XML does not exist for paper!')
         if pub['puppub'] == False or args.pdf:
-            check_xml(bib_db, args=args)
+            check_xml(bib_db, args, False, False, pubpub_years)
         else:
-            check_xml(bib_db, jats=True, args=args)    
+            check_xml(bib_db, args, True, False, pubpub_years)
         iterator.clear()
         iterator.refresh()
 
