@@ -282,12 +282,11 @@ def check_xml(bib_db, args, jats=False, overwrite=False, pubpub_years=[]):
             os.makedirs('./cache/pdf/unconvertable_pdfs', exist_ok=True)
             for pdf in unconverted_pdfs:
                 shutil.move(f'./cache/pdf/{pdf}', f'./cache/pdf/unconvertable_pdfs/{pdf}')
-
-            exit(0)
+            
         else:     
             global grobid_answered
             if grobid_answered:
-                answer = boolify(input('All XMLs exist - convert anyway? (y/N): '))
+                answer = boolify(input('All XMLs exist - convert anyway? this may take some time (y/N): '))
                 grobid_answered = False
                 if answer:
                     generate_grobid(True)
@@ -365,7 +364,7 @@ def generate_grobid(overwrite=False):
 
     client = GrobidClient(config_path='./resources/config.json')
 
-    client.process('processFulltextDocument', pdf_src[:-1], output=xml_src, force=True,
+    client.process('processFulltextDocument', pdf_src[:-1], output=xml_src, force=overwrite,
                    consolidate_header=True, consolidate_citations=True,
                    include_raw_affiliations=True, include_raw_citations=True)
 
