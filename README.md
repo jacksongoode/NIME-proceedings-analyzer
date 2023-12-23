@@ -12,11 +12,14 @@ The tool is includes four scripts:
 
 4. [analysis_search.py](analysis_search.py) - Searches specific keywords through the papers and it produces a graph with the search terms over the years in a .xlsx file saved in _./output/_.
 
+5. [analysis_citations.py](analysis_citations.py) - Analyzes the references and citation data stored in _./output/export.csv_. and produces a pair of .txt and .xlsx files in _./output/_ with statistics related to papers citing and cited in NIME.
+
+
 ## Description & Usage
 
 ### Requirements
 
-The NIME PA has been requires Python 3.11 and Java JDK 1.11.
+The NIME PA requires Python 3.11, Java JDK 1.11 and an active Internet connection.
 
 Install required packages:
 
@@ -31,8 +34,12 @@ python pa.py
 python analysis_meta.py
 python analysis_topic.py
 python analysis_search.py
-python analysis_citations.py
+python analysis_refcits.py
 ```
+
+Note: location-based analyses uses data from [OpenCage Data](https://opencagedata.com/) for which you must provide an API key (currently free registration provides a key for 2500 requests per day).
+
+Note: bibliometric-based analyses uses data from [Semantic Scholar](https://www.semanticscholar.org/) for which you may provide an API key to access the service at a faster rate.
 
 Note: For Macbooks based on arm, a the library located at `/NIME-proceedings-analyzer/cache/grobid-{version}/grobid-home/lib/mac-64/libwapiti.dylib` may not work properly with the device. In this case, a pre-built lib has been made available within `resources/misc/libwapiti.dylib`. This can be overwrite the installed lib if needed.
 
@@ -42,7 +49,7 @@ This script produces a database which includes an entry for each published NIME 
 
 - information extracted from the [NIME BibTex Archive](https://github.com/NIME-conference/NIME-bibliography/blob/master/paper_proceedings/nime_papers.bib)
 - additional information extracted from the PDF file of the papers using [Grobid](https://github.com/kermitt2/grobid)
-- location and affiliation of the authors, extracted using a combination methods that minimizes errors
+- location and affiliation of the authors, extracted using a combination methods and data from [Open Cage Data](https://opencagedata.com/) that minimize estimation errors
 - gender of the authors estimated using a [binary](https://github.com/parthmaul/onomancer) and [non-binary method](https://github.com/lead-ratings/gender-guesser)
 - number of citations received by the paper and key citations extracted from [Semantic Scholar](https://www.semanticscholar.org/)
 - estimated distance and carbon footprint for authors traveling to the conference.
@@ -58,7 +65,8 @@ The script accepts the following optional arguments:
 - **-r, --redo** deletes cache
 - **-n, --nime** uses NIME specific corrections
 - **-p, --pdf** use manually downloaded pdf for PubPub publications
-- **-k KEY, --key KEY** Semantic Scholar API key
+- **-ock OCKEY, --ockey OCKEY** OpenCage Geocoding API key
+- **-ssk SSKEY, --sskey SSKEY** Semantic Scholar API key
 - **-s SLEEP, --sleep SLEEP** sleep time (sec) between Semantic Scholar API requests
 
 The first execution of the script will take a significant amount of time, approximately 12 hours.
@@ -78,7 +86,11 @@ Depending on the arguments, the script may interactively prompt "Yes"/"No" quest
 
 **-p**: This argument enables to use PDF instead of XML for papers published in PubPub. Analyzing PDF may be preferred as PubPub keeps changing frequently and this tool is not updated at the same rate. However, automatic download of PDF papers from PubPub is not possible. If selecting this option the collection of 2021 and 2022 PubPub papers must be manually downloaded, renamed with the associated ID found in the [NIME BibTex File](http://nime-conference.github.io/NIME-bibliography/nime_papers.bib) (e.g. NIME22_16.pdf) and placed in the folder _./resources/pubpub/_ . Alternatively the same collection of PubPub PDF files (with proper renaming and correction of malformed files) can be downloaded [here](https://drive.google.com/uc?export=download&id=1i2ulr9XmHm3hlHuXCEPOFQf2JfLMXodg).
 
-**-k KEY**: This argument allows to specify a [Semantic Scholar API Key](https://www.semanticscholar.org/product/api#api-key) to request citations and list of reference data at faster rate (default is 5000 requests per 5 minutes).
+**-ock OCKEY**: This argument allows to specify an [OpenCage Geocoding API Key](https://opencagedata.com/api) which is necessary to request location-related data. A free key allows only 2500 requests per day.
+
+This argument allows to specify a [Semantic Scholar API Key](https://www.semanticscholar.org/product/api#api-key) to request citations and list of reference data at faster rate (default is 5000 requests per 5 minutes).
+
+**-ssk SSKEY**: This argument allows to specify a [Semantic Scholar API Key](https://www.semanticscholar.org/product/api#api-key) to request citations and list of reference data at faster rate (default is 5000 requests per 5 minutes).
 
 **-s SLEEP**: This argument allows to specify a custom sleep time (in seconds) between consecutive Semantic Scholar API request, which is needed when using a Semantic Scholar API Key allowing a higher request-rate (default sleep is 0.06 sec).
 
@@ -167,9 +179,26 @@ The script produces the following output files:
 - _./output/wordcloud_titles.png_
 - _./output/lda.html_
 
-## analysis_citations.py
+## analysis_refcit.py
 
-...coming soon...
+This script analyzes the metadata stored in _./output/export.csv_. and produces statistics related to references (i.e. works cited in NIME papers) and to citations (i.e. works citing NIME papers). This script requires the data generated by the pa.py script.
+
+The script accepts the following optional arguments:
+
+- **-h, --help** show this help message and exit
+- **-v, --verbose** prints out operations
+- **-n, --nime** uses NIME based corrections
+
+**-v**: This argument prints details of the script's progress.
+
+**-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
+
+The script interactively prompt "Yes"/"No" questions for computing the statistics associated with the four above-mentioned categories.
+
+The statistics computed by the script are stored in the following files:
+
+- _./output/refcit.txt_
+- _./output/refcit.xlsx_
 
 ## analysis_search.py
 
@@ -209,6 +238,8 @@ The following tips may help to troubleshoot the execution of pa.py:
 5. At times, the download of the PDF file may fail but a zero-bytes file is still generated in the folder _./cache/pdf/_. As a consequence, incomplete data related to the paper will be stored in export.csv. After a complete execution of pa.py it is recommended to look for zero-bytes PDF in _./cache/pdf/_, remove them and the associated files created in _./cache/xml/_, _./cache/text/miner/_, and _./cache/text/grobid/_. Then restart pa.py with the same arguments (with exception of those deleting caches and forcing the regeneration of xml files), the new export.csv file with complete information will be generated in a fairly short amount of time.
 
 6. To speed up the download of the PDF files, the analyzer uses multiple threads downloading files in parallel. At times this may fail either generating a long sequence of download error messages, or downloading corrupted PDF files (that will determine an error later on in the analysis process). To avoid this possible problem, set _max_workers=1_ at line 195 of _pa_load.py_.
+
+7. If using a free [OpenCage Geocoding API Key](https://opencagedata.com/api), the limit of 2500 requests per day is not sufficient to complete the execution of [pa.py](pa.py) when starting from empty cache. Moreover, [pa.py](pa.py) does not keep track of the number of requests and at some point you may start to get warning message with exception messages from OpenCageGeocode. Currently we estimate that approximately 3000 requests are necessary. Location data requested from OpenCage is stored in _./cache/json/location_cache.json_. Therefore, when starting from empty cache using a free API key, you should interrupt [pa.py](pa.py) once it pass 50% and then restart after 24 hours. Once the cache file _location_cache.json_ is populated, the request limit no longer affects the execution of [pa.py](pa.py).
 
 ## Resources
 
