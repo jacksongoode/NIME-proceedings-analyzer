@@ -308,7 +308,7 @@ def extract_grobid(pub, bib_db, iterator, args, pubpub_years):
         authors = soup.analytic.find_all('author')
 
         for author in authors:
-            persname = author.persname
+            persname = author.persName
             if persname:
                 firstname = elem_text(persname.find("forename", type="first"), '')
                 middlename = elem_text(persname.find("forename", type="middle"), '')
@@ -326,7 +326,7 @@ def extract_grobid(pub, bib_db, iterator, args, pubpub_years):
             grob_addrs.append(elem_text(affil.address))
 
         grob_info = [grob_names, grob_emails, grob_orgs, grob_addrs]
-
+        
         # Fill in missing data with 'N/A'
         author_count = pub['author count']
         for author in range(author_count):
@@ -352,7 +352,7 @@ def extract_grobid(pub, bib_db, iterator, args, pubpub_years):
             # PubPub tei's have expansive body
             # /n and spaces need to be addressed
             grob_text = []
-            grob_body = soup.body.find_all('p')
+            grob_body = soup.find_all('p')
             for p in grob_body:
                 p = re.sub(r'\s+', ' ', elem_text(p)).strip()
                 grob_text.append(p)
