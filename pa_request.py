@@ -147,7 +147,7 @@ def request_scholar(pub, args):
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
             try:
-                query_result = scholar_api_paper_search(scholar_query,args.key,args.sleep)
+                query_result = scholar_api_paper_search(scholar_query,args.sskey,args.sleep)
             except Exception as e:
                 query_result = {'results' : {}}
                 err_info = 'x - While querying Semantic Scholar an exception of type {0} occurred.\nArguments:\n{1!r}.'
@@ -175,7 +175,7 @@ def request_scholar(pub, args):
 
                         if pub['scholar paper id'] not in scholar_cache:
                             pa_print.tprint(f'\nSemantic Scholar paper lookup...')
-                            lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.key,args.sleep)
+                            lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
                             scholar_cache[pub['scholar paper id']] = lookup_result
                             if 'embedding' in lookup_result:
                                 pub['scholar embedding'] = lookup_result['embedding']
@@ -244,7 +244,8 @@ def request_location(author_info, args, pub):
     # Conference location lookup
     cnf_query = pub['address']
     query_type = 'conference'
-    query_location(cnf_query, query_type, pub) # *** creates unneeded columns ***
+
+    query_location(cnf_query, query_type, pub, args) # *** creates unneeded columns ***
 
     # Author location lookup
     for author in range(author_count): # length of usable locations
@@ -286,7 +287,7 @@ def request_location(author_info, args, pub):
         pub['author query origins'].append(query_origin)
         query_location(location_query, query_type, pub)
 
-def query_location(location_query, query_type, pub): # 'query_type is now only used to print status
+def query_location(location_query, query_type, pub, args): # 'query_type is now only used to print status
     # Load cache
     try:
         with open('./cache/json/location_cache.json','rb') as fp:
@@ -298,10 +299,9 @@ def query_location(location_query, query_type, pub): # 'query_type is now only u
     # Not cached
     if location_query not in location_cache:
         try:
-            # location = geolocator.geocode(location_query, language="en") # Nominatim fallback
+            geocoder = OpenCageGeocode(args.ockey)
             # OpenCageGeocode: 2,500 req/day, 1 req/s - https://github.com/OpenCageData/python-opencage-geocoder
             location = geocoder.geocode(location_query, language='en', limit=1, no_annotations=1, no_record=1)[0]
-
             # Format result
             geometry = location['geometry'] # lat/long
             components = location['components'] # fine loc info
@@ -316,12 +316,14 @@ def query_location(location_query, query_type, pub): # 'query_type is now only u
             pa_print.tprint(f'✓ - Parsed {query_type} location: {location_info[0]}')
             time.sleep(1+random.random())
 
-        except: # API fails
-            location_cache[location_query] = 'N/A'
+        except Exception as e: # API fails    
+            #location_cache[location_query] = 'N/A'
             pub[f'{query_type} location info'].append('N/A')
             pub[f'{query_type} location confidence'].append('N/A')
-            pa_print.tprint(f'x - Could not parse {query_type} location: {location_query}')
-
+            err_info = 'x - Could not parse {0} location: {1}, while querying Open Cage Data an exception of type {2} occurred.\nArguments:\n{3!r}.'
+            err_msg = err_info.format(query_type,location_query,type(e).__name__, e.args)
+            pa_print.tprint(err_msg)
+        
         # Save changes to cache
         with open('./cache/json/location_cache.json','wb') as fp:
             fp.write(orjson.dumps(location_cache))
