@@ -244,9 +244,9 @@ def gen_wordcloud(processed_data):
         plt.savefig(f'./output/wordcloud_{data[0]}.png', dpi=300)
     pa_print.nprint('\nGenerated .png files in ./output!')
 
-def stats_bibliometric(bib_df, cit_df, ref_df, auth_df):
+def stats_refcit(bib_df, cit_df, ref_df, auth_df):
 
-    pa_print.nprint('\nComputing bibliometric statistics...')
+    pa_print.nprint('\nComputing references and citations statistics...')
 
     years = np.sort(bib_df['year'].unique())
     years_rel = np.delete(years, np.where((years == 2021) | (years == 2022))) #removing PubPub years
@@ -681,10 +681,10 @@ def stats_bibliometric(bib_df, cit_df, ref_df, auth_df):
     plt.savefig('./output/reduced_embedding_scatter_cit_leg.png', dpi=150)
 
 
-    with open('./output/bibliometric.txt', 'w') as text_file:
+    with open('./output/refcit.txt', 'w') as text_file:
         text_file.write(outtxt)
 
-    with pd.ExcelWriter('./output/bibliometric.xlsx') as writer:
+    with pd.ExcelWriter('./output/refcit.xlsx') as writer:
         bib_df.to_excel(writer, sheet_name='NIME Papers', header=True)
         ref_df.to_excel(writer, sheet_name='References', header=True)
         cit_df.to_excel(writer, sheet_name='Citations', header=True)
@@ -715,7 +715,7 @@ def stats_bibliometric(bib_df, cit_df, ref_df, auth_df):
         cit_venues_per_year.to_excel(writer, sheet_name='Citation pub venue per year', header=True)
 
 
-    pa_print.nprint('\nGenerated bibliometric.txt and bibliometric.xlsx in ./output!')
+    pa_print.nprint('\nGenerated refcit.txt and refcit.xlsx in ./output!')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze the metadata stored in the output/export.csv')
@@ -739,6 +739,6 @@ if __name__ == "__main__":
     bib_df = load_bib_csv('./output/export.csv',user_config[3])
     cit_df, ref_df, auth_df = generate_cit_ref_auth_df(bib_df)
 
-    answer = boolify(input("\nGenerate bibliometric statistics? (y/N): "))
+    answer = boolify(input("\nGenerate references and citations statistics? (y/N): "))
     if answer:
-        stats_papers_out = stats_bibliometric(bib_df, cit_df, ref_df, auth_df)
+        stats_papers_out = stats_refcit(bib_df, cit_df, ref_df, auth_df)
