@@ -326,7 +326,7 @@ def extract_grobid(pub, bib_db, iterator, args, pubpub_years):
             grob_addrs.append(elem_text(affil.address))
 
         grob_info = [grob_names, grob_emails, grob_orgs, grob_addrs]
-        
+
         # Fill in missing data with 'N/A'
         author_count = pub['author count']
         for author in range(author_count):

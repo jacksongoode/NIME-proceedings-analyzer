@@ -60,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--pdf', action='store_true', default=False,
                         help='use manually downloaded pdf for PubPub publications')
     parser.add_argument('-ock', '--ockey', type=str, default='',
-                       help='Open Cage Data API key')
+                       help='OpenCage Geocoding API key')
     parser.add_argument('-ssk', '--sskey', type=str, default='',
                        help='Semantic Scholar API key')
     parser.add_argument('-s', '--sleep', type=float, default=3,
