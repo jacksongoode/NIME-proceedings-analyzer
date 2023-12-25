@@ -193,8 +193,7 @@ def extract_bib(pub, args):
     # Age of papers
     pub['age'] = datetime.datetime.now().year - int(pub['year'])
 
-    # ID
-    #pub['ID'] = 
+
 
 def download_pdf(pdf_path, pub):
     pa_print.tprint('\nLocal PDF not found - downloading...')
@@ -477,7 +476,7 @@ def clean_text(doc, user_config=None, miner=False):
         ignore_words =  user_config[1]
         merge_words =  user_config[2]
         # selected_years =  user_config[3]
-
+    
     if miner is True: # no need to trim with grobid text
         doc_trimmed = trim_headfoot(doc)
 

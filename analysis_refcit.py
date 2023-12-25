@@ -33,6 +33,10 @@ import ast
 import collections
 from itertools import cycle, chain
 
+# to disable Pandas FutureWarning
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 # External
 import gensim
 import unidecode
@@ -46,7 +50,6 @@ from scipy.optimize import curve_fit
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 from sklearn.manifold import TSNE
-
 
 import nltk
 nltk.download('punkt', download_dir='./cache/nltk_data', quiet=True)
@@ -124,6 +127,7 @@ def load_bib_csv(filepath, selectedyears):
             if any(bib_df['scholar paper id'].isin([cit['paperId']])):
                 bib_df.at[index, 'scholar citation count not-NIME'] = bib_df.at[index, 'scholar citation count not-NIME'] + 1
 
+    os.makedirs('./cache/df', exist_ok=True)
     bib_df.to_pickle('./cache/df/cleaned_bib_df.obj')  
 
     return bib_df
@@ -166,7 +170,8 @@ def generate_cit_ref_auth_df(bib_df):
                         temp['in NIME'] = False
                         if temp['authorId'] in NIME_authors_id:
                             temp['in NIME'] = True
-                        auth_df = auth_df.append(temp, ignore_index=True)
+                        auth_df = pd.concat([auth_df, pd.DataFrame([temp])], ignore_index=True)
+
             if cit['paperId'] is None:
                 continue
             if any(cit_df['paperId'].isin([cit['paperId']])):
@@ -179,7 +184,7 @@ def generate_cit_ref_auth_df(bib_df):
                 temp['count_year'] = years_empty_dict.copy()
                 temp['count_year'][item['year']] = temp['count_year'][item['year']] + 1
                 temp['in NIME'] = any(bib_df['scholar paper id'].isin([cit['paperId']]))
-                cit_df = cit_df.append(temp, ignore_index=True)
+                cit_df = pd.concat([cit_df, pd.DataFrame([temp])], ignore_index=True)
               
         for ref in item['scholar references']:
             for auth in ref['authors']:
@@ -198,7 +203,8 @@ def generate_cit_ref_auth_df(bib_df):
                         temp['in NIME'] = False
                         if temp['authorId'] in NIME_authors_id:
                             temp['in NIME'] = True
-                        auth_df = auth_df.append(temp, ignore_index=True)
+                        auth_df = pd.concat([auth_df, pd.DataFrame([temp])], ignore_index=True)
+
             if ref['paperId'] is None:
                 continue
             if any(ref_df['paperId'].isin([ref['paperId']])):
@@ -213,7 +219,10 @@ def generate_cit_ref_auth_df(bib_df):
                 temp['count_year'] = years_empty_dict.copy()
                 temp['count_year'][item['year']] = temp['count_year'][item['year']] + 1
                 temp['in NIME'] = any(bib_df['scholar paper id'].isin([ref['paperId']]))
-                ref_df = ref_df.append(temp, ignore_index=True)
+                if not ref_df.empty:
+                    ref_df = pd.concat([ref_df, pd.DataFrame([temp])], ignore_index=True)
+                else:
+                    ref_df = pd.DataFrame([temp]).copy()
 
     cit_df.to_pickle('./cache/df/cit_df.obj')
     ref_df.to_pickle('./cache/df/ref_df.obj')
@@ -341,8 +350,12 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
                             acc_new_ref = acc_new_ref + 1
         citations_per_year.at[y,'total'] = acc_citations
         citations_per_year.at[y,'norm by numpaper'] = acc_citations/len(papers)
-        citations_per_year.at[y,'norm by agepaper'] = acc_citations/papers['age'].values[0]
-        citations_per_year.at[y,'norm by num_and_agepaper'] = (acc_citations/len(papers))/papers['age'].values[0]
+        if papers['age'].values[0] > 0:
+            citations_per_year.at[y,'norm by agepaper'] = acc_citations/papers['age'].values[0]
+            citations_per_year.at[y,'norm by num_and_agepaper'] = (acc_citations/len(papers))/papers['age'].values[0]
+        else:
+            citations_per_year.at[y,'norm by agepaper'] = acc_citations
+            citations_per_year.at[y,'norm by num_and_agepaper'] = (acc_citations/len(papers))
         papers_in_scholar = papers.loc[is_not_nan(papers['scholar paper id'])]
         references_per_year.at[y,'total'] = acc_references
         references_per_year.at[y,'new'] = acc_new_ref
@@ -606,7 +619,10 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
         if any(cit_df['paperId'].isin([ref['paperId']])):
             cit_idx = np.where(cit_df['paperId'] == ref['paperId'])
             cit_idx = cit_idx[0][0]
-            ref_cit_df = ref_cit_df.append(ref, ignore_index=True)
+            if not ref_cit_df.empty:
+                ref_cit_df = pd.concat([ref_cit_df, pd.DataFrame([ref])], ignore_index=True)
+            else:
+                ref_cit_df = pd.DataFrame([ref]).copy()
             ref_cit_df.at[idx, 'cit count'] = cit_df.at[cit_idx, 'count']
             ref_cit_df.at[idx, 'ref+cit count'] = ref_cit_df.at[idx, 'count'] + ref_cit_df.at[idx, 'cit count']
             idx = idx + 1
@@ -626,12 +642,15 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
 
     for index,item in bib_df.iterrows():
         if item['scholar tldr']:
-            tldr = clean_text(item['scholar tldr']['text'], user_config)
-            processed_tldr.append(tldr)
+            if item['scholar tldr']['text'] is not None:
+                tldr = clean_text(item['scholar tldr']['text'], user_config)
+                processed_tldr.append(tldr)
 
     for index,item in cit_df.iterrows():
         if item['title']:
-            tit = clean_text(item['title'], user_config)
+            if item['title'] is not None:
+                tit = clean_text(item['title'], user_config)
+            
             processed_cit_titles.append(tit)
             processed_cit_titles_count.append(tit*item['count'])
 
@@ -683,6 +702,13 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
 
     with open('./output/refcit.txt', 'w') as text_file:
         text_file.write(outtxt)
+
+
+    # remove illegal characters
+    bib_df = bib_df.applymap(lambda x: x.encode('unicode_escape').decode('utf-8') if isinstance(x, str) else x)
+    ref_df = ref_df.applymap(lambda x: x.encode('unicode_escape').decode('utf-8') if isinstance(x, str) else x)
+    cit_df = cit_df.applymap(lambda x: x.encode('unicode_escape').decode('utf-8') if isinstance(x, str) else x)
+
 
     with pd.ExcelWriter('./output/refcit.xlsx') as writer:
         bib_df.to_excel(writer, sheet_name='NIME Papers', header=True)

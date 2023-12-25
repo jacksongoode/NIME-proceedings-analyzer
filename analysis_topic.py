@@ -99,7 +99,7 @@ def gen_model(remodel=True, rebuild=True, model='', num_topics=5, user_config=No
                 if text_fn.startswith('grob_'):
                     with open(grobid_text_src+text_fn, 'r') as doc:
                         doc_list.append(doc.read())
-
+            
             for doc in doc_list:
                 processed_words = clean_text(doc, user_config) # extract only meaningful words, user config!
                 processed_bodies.append(processed_words)
@@ -309,7 +309,10 @@ def gen_counts(processed_data, year_list):
 
         topic_row = pd.Series(data=lda_model.show_topics(num_words=10), name='Word constituents of topics')
         topics_df = pd.DataFrame.from_dict(year_dict, orient='index')
-        topics_df = topics_df.append(topic_row, ignore_index=False)
+        if not topics_df.empty:
+            topics_df = pd.concat([topics_df, pd.DataFrame([topic_row])], ignore_index=True)
+        else:
+            topics_df = pd.DataFrame([topic_row]).copy()
         topics_df.to_excel(writer, sheet_name='Weighted topics')
 
     pa_print.nprint('\nGenerated topics.xlsx in ./output!')
@@ -366,9 +369,11 @@ if __name__ == '__main__':
     year_list = []
     for i in os.listdir(grobid_text_src):
         if i.startswith('grob_'):
-            name = i.split('grob_nime')[-1]
-            year = name.split('_')[0]
-            year_list.append((int(year), name))
+            name = i.lower().split('grob_nime')[-1]
+            year = int(name.split('_')[0])
+            if year < 2000: # handle PubPub grobid named only with last 2 digits of the year
+                year = year + 2000                
+            year_list.append((year, name))
 
     # Create empty dict of lists for years (n topics each year)
     year_dict = dict()

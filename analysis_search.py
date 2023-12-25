@@ -83,9 +83,11 @@ if __name__ == "__main__":
     year_list = []
     for i in os.listdir(grobid_text_src):
         if i.startswith('grob_'):
-            name = i.split('grob_nime')[-1]
-            year = name.split('_')[0]
-            year_list.append((int(year), name))
+            name = i.lower().split('grob_nime')[-1]
+            year = int(name.split('_')[0])
+            if year < 2000: # handle PubPub grobid named only with last 2 digits of the year
+                year = year + 2000                
+            year_list.append((year, name))
 
     keyword_frequency = pd.DataFrame(index = year_range, columns = keywords)
 
