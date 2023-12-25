@@ -165,7 +165,7 @@ The script accepts the following optional arguments:
 
 **-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
 
-The analysis can be highly customized through the _custom.csv_ file in the _./resources/_ folder.
+The analysis can be customized through the _custom.csv_ file in the _./resources/_ folder.
 
 The script interactively prompt "Yes"/"No" questions for computing the data associated with the three above-mentioned categories.
 
@@ -193,6 +193,8 @@ The script accepts the following optional arguments:
 
 **-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
 
+The analysis can be restricted to specific years through the [custom.csv](#custom.csv) file in the _./resources/_ folder.
+
 The script interactively prompt "Yes"/"No" questions for computing the statistics associated with the four above-mentioned categories.
 
 The statistics computed by the script are stored in the following files:
@@ -213,7 +215,7 @@ The script produces the following output files:
 
 Through this file, located in the _./resources/_ folder, it is possible to customize the metadata and topic analysis. The following entries are allowed:
 
-- **years**: restrict the analysis to specific years (single cell), or to a a specific range (two adjacent cells). This entry can be repeated across multiple rows for incongruent years. This works with _analysis_meta.py_, _analysis_topic.py_, and _analysis_search.py_.
+- **years**: restrict the analysis to specific years (single cell), or to a a specific range (two adjacent cells). This entry can be repeated across multiple rows for incongruent years. This works with _analysis_meta.py_, _analysis_topic.py_, analysis_refcit.py, and _analysis_search.py_.
 
 - **keywords**: specify words (one in each cell) that can be queried for occurrence frequency using _analysis_search.py_.
 
