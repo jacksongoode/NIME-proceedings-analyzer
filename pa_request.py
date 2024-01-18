@@ -177,7 +177,7 @@ def request_scholar(pub, args):
                         if pub['scholar paper id'] not in scholar_cache:
                             pa_print.tprint(f'\nSemantic Scholar paper lookup...')
                             lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
-                            if lookup_result['message'] != 'Endpoint request timed out':
+                            if 'message' not in lookup_result:
                                 scholar_cache[pub['scholar paper id']] = lookup_result
                         else:
                             lookup_result = scholar_cache[pub['scholar paper id']]
