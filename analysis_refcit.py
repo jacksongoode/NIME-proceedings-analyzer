@@ -631,7 +631,6 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
     ref_cit_df = ref_cit_df.drop(columns=['count x cit', 'count_year'])
 
     outtxt += '\nNumber of papers in both references and citations %d out of which %d in NIME' % (len(ref_cit_df.index), len(ref_cit_df[ref_cit_df['in NIME'] ==  True]))
-    outtxt += '\nCitations number of publication venues %d' % (len(cit_venues))
 
     # wordclouds title ref, title cit, tldr
     processed_tldr = []
