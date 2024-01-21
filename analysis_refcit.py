@@ -299,7 +299,8 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
     references_total_arr = []
 
     for index,item in bib_df.iterrows():
-        citations_total_arr = np.append(citations_total_arr, len(item['scholar citations']))
+        if item['scholar citation count'] == item['scholar citation count']: #check if not NaN
+            citations_total_arr = np.append(citations_total_arr, item['scholar citation count'])
         if item['scholar valid']:
             references_total_arr = np.append(references_total_arr, len(item['scholar references']))
 
@@ -339,7 +340,8 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
         acc_references = 0
         acc_new_ref = 0
         for index,item in papers.iterrows():
-            acc_citations = acc_citations + len(item['scholar citations'])
+            if item['scholar citation count'] == item['scholar citation count']: #check if not NaN
+                acc_citations = acc_citations + item['scholar citation count']
             if item['scholar valid']:
                 acc_references = acc_references + len(item['scholar references'])
                 for ref in item['scholar references']:
