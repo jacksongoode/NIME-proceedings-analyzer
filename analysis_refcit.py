@@ -120,13 +120,6 @@ def load_bib_csv(filepath, selectedyears):
     bib_df['scholar publication venue'] = [ast.literal_eval(citations) if is_not_nan(citations) else list() for citations in bib_df['scholar publication venue']]
     bib_df['scholar publication type'] = [ast.literal_eval(citations) if is_not_nan(citations) else list() for citations in bib_df['scholar publication type']]
 
-    bib_df['scholar citation count not-NIME'] = 0
-
-    for index,item in bib_df.iterrows():
-        for cit in item['scholar citations']:
-            if any(bib_df['scholar paper id'].isin([cit['paperId']])):
-                bib_df.at[index, 'scholar citation count not-NIME'] = bib_df.at[index, 'scholar citation count not-NIME'] + 1
-
     os.makedirs('./cache/df', exist_ok=True)
     bib_df.to_pickle('./cache/df/cleaned_bib_df.obj')  
 
@@ -406,7 +399,7 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
                     if auth['authorId'] in NIME_authors_id:
                         bib_df.at[index, 'citations from NIME authors'] = bib_df.at[index, 'citations from NIME authors'] + 1
                         break
-            bib_df.at[index,'citations from NIME'] = cit_acc
+            bib_df.at[index,'citations from NIME'] =  cit_acc
             if item['scholar valid']:
                 for ref in item['scholar references']:
                     if ref['year']:
