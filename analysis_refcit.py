@@ -486,14 +486,15 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
         cit_venues_per_year[y] = {}
         for index,item in papers.iterrows():
             for fld in item['scholar field of study']:
-                if fld['category'] in proc_fields:
-                    proc_fields[fld['category']] = proc_fields[fld['category']] + 1
-                else:
-                    proc_fields[fld['category']] = 1
-                if fld['category'] in proc_fields_per_year[y]:
-                    proc_fields_per_year[y][fld['category']] = proc_fields_per_year[y][fld['category']] + 1
-                else:
-                    proc_fields_per_year[y][fld['category']] = 1
+                if fld['source'] == 's2-fos-model':
+                    if fld['category'] in proc_fields:
+                        proc_fields[fld['category']] = proc_fields[fld['category']] + 1
+                    else:
+                        proc_fields[fld['category']] = 1
+                    if fld['category'] in proc_fields_per_year[y]:
+                        proc_fields_per_year[y][fld['category']] = proc_fields_per_year[y][fld['category']] + 1
+                    else:
+                        proc_fields_per_year[y][fld['category']] = 1
             for cit in item['scholar citations']:
                 if cit['publicationVenue']:
                     if 'id' in cit['publicationVenue']:
@@ -512,24 +513,26 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
                                 pub_venues[cit['publicationVenue']['id']] = cit['publicationVenue']['name']
                 if cit['s2FieldsOfStudy']:
                     for fld in cit['s2FieldsOfStudy']:
-                        if fld['category'] in cit_fields:
-                            cit_fields[fld['category']] = cit_fields[fld['category']] + 1
-                        else:
-                            cit_fields[fld['category']] = 1
-                        if fld['category'] in cit_fields_per_year[y]:
-                            cit_fields_per_year[y][fld['category']] = cit_fields_per_year[y][fld['category']] + 1
-                        else:
-                            cit_fields_per_year[y][fld['category']] = 1
+                        if fld['source'] == 's2-fos-model':
+                            if fld['category'] in cit_fields:
+                                cit_fields[fld['category']] = cit_fields[fld['category']] + 1
+                            else:
+                                cit_fields[fld['category']] = 1
+                            if fld['category'] in cit_fields_per_year[y]:
+                                cit_fields_per_year[y][fld['category']] = cit_fields_per_year[y][fld['category']] + 1
+                            else:
+                                cit_fields_per_year[y][fld['category']] = 1
                     if any(bib_df['scholar paper id'].isin([cit['paperId']])):
                         for fld in cit['s2FieldsOfStudy']:
-                            if fld['category'] in cit_fields_nime:
-                                cit_fields_nime[fld['category']] = cit_fields_nime[fld['category']] + 1
-                            else:
-                                cit_fields_nime[fld['category']] = 1
-                            if fld['category'] in cit_fields_per_year_nime[y]:
-                                cit_fields_per_year_nime[y][fld['category']] = cit_fields_per_year_nime[y][fld['category']] + 1
-                            else:
-                                cit_fields_per_year_nime[y][fld['category']] = 1
+                            if fld['source'] == 's2-fos-model':
+                                if fld['category'] in cit_fields_nime:
+                                    cit_fields_nime[fld['category']] = cit_fields_nime[fld['category']] + 1
+                                else:
+                                    cit_fields_nime[fld['category']] = 1
+                                if fld['category'] in cit_fields_per_year_nime[y]:
+                                    cit_fields_per_year_nime[y][fld['category']] = cit_fields_per_year_nime[y][fld['category']] + 1
+                                else:
+                                    cit_fields_per_year_nime[y][fld['category']] = 1
             if item['scholar valid']:
                 for ref in item['scholar references']:
                     if ref['publicationVenue']:
@@ -549,24 +552,26 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
                                     pub_venues[ref['publicationVenue']['id']] = ref['publicationVenue']['name']
                     if ref['s2FieldsOfStudy']:
                         for fld in ref['s2FieldsOfStudy']:
-                            if fld['category'] in ref_fields:
-                                ref_fields[fld['category']] = ref_fields[fld['category']] + 1
-                            else:
-                                ref_fields[fld['category']] = 1
-                            if fld['category'] in ref_fields_per_year[y]:
-                                ref_fields_per_year[y][fld['category']] = ref_fields_per_year[y][fld['category']] + 1
-                            else:
-                                ref_fields_per_year[y][fld['category']] = 1
+                            if fld['source'] == 's2-fos-model':
+                                if fld['category'] in ref_fields:
+                                    ref_fields[fld['category']] = ref_fields[fld['category']] + 1
+                                else:
+                                    ref_fields[fld['category']] = 1
+                                if fld['category'] in ref_fields_per_year[y]:
+                                    ref_fields_per_year[y][fld['category']] = ref_fields_per_year[y][fld['category']] + 1
+                                else:
+                                    ref_fields_per_year[y][fld['category']] = 1
                     if any(bib_df['scholar paper id'].isin([ref['paperId']])):
                         for fld in ref['s2FieldsOfStudy']:
-                            if fld['category'] in ref_fields_nime:
-                                ref_fields_nime[fld['category']] = ref_fields_nime[fld['category']] + 1
-                            else:
-                                ref_fields_nime[fld['category']] = 1
-                            if fld['category'] in ref_fields_per_year_nime[y]:
-                                ref_fields_per_year_nime[y][fld['category']] = ref_fields_per_year_nime[y][fld['category']] + 1
-                            else:
-                                ref_fields_per_year_nime[y][fld['category']] = 1  
+                            if fld['source'] == 's2-fos-model':
+                                if fld['category'] in ref_fields_nime:
+                                    ref_fields_nime[fld['category']] = ref_fields_nime[fld['category']] + 1
+                                else:
+                                    ref_fields_nime[fld['category']] = 1
+                                if fld['category'] in ref_fields_per_year_nime[y]:
+                                    ref_fields_per_year_nime[y][fld['category']] = ref_fields_per_year_nime[y][fld['category']] + 1
+                                else:
+                                    ref_fields_per_year_nime[y][fld['category']] = 1  
 
     ref_fields = pd.DataFrame.from_dict(ref_fields, orient='index')
     cit_fields = pd.DataFrame.from_dict(cit_fields, orient='index')
