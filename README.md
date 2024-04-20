@@ -248,7 +248,44 @@ The following tips may help to troubleshoot the execution of pa.py:
 The extracted data from 2001 to 2020 is presented in:  
 S. Fasciani, J. Goode, [20 NIMEs: Twenty Years of New Interfaces for Musical Expression](https://nime.pubpub.org/pub/20nimes/), in proceedings of 2021 International Conference on New Interfaces for Musical Expression, Shanghai, China, 2021.
 
-The data presented in the paper has been further manually polished and arranged in a [spreadsheet](https://docs.google.com/spreadsheets/d/134zxeEhhXp3o7G_S1oDVjDymPuj2J3Wj3ftEAdOEo8g/edit?usp=sharing), which includes a large collection of plots and data visualizations.
+The data presented in the paper has been manually polished and arranged in a [spreadsheet](https://docs.google.com/spreadsheets/d/134zxeEhhXp3o7G_S1oDVjDymPuj2J3Wj3ftEAdOEo8g/edit?usp=drive_link), which includes a collection of plots and data visualizations.
+
+```text
+@inproceedings{NIME21_1,
+    address = {Shanghai, China},
+    articleno = {1},
+    author = {Fasciani, Stefano and Goode, Jackson},
+    booktitle = {Proceedings of the International Conference on New Interfaces for Musical Expression},
+    doi = {10.21428/92fbeb44.b368bcd5},
+    issn = {2220-4806},
+    title = {20 NIMEs: Twenty Years of New Interfaces for Musical Expression},
+    url = {https://nime.pubpub.org/pub/20nimes},
+    year = {2021}
+}
+```
+
+The extracted data related to references and citations from 2001 to 2023 is presented in:  
+S. Fasciani [Bibliometric Analysis of NIME References and Citations](http://nime.org/proceedings/2023/nime2024_15.pdf), in proceedings of 2024 International Conference on New Interfaces for Musical Expression, Utrecht, Netherlands, 2024.
+
+The data presented in the paper has been manually polished and arranged in a [spreadsheet](https://docs.google.com/spreadsheets/d/1swmSw3Uwja9N64t-qgkzpupaTqIZyD4bjftbgPMzmLk/edit?usp=drive_link), which includes a collection of plots and data visualizations.
+
+
+```text
+@article{nime2024_15,
+    address = {Utrecht, Netherlands},
+    articleno = {15},
+    author = {Fasciani, Stefano},
+    booktitle = {Proceedings of the International Conference on New Interfaces for Musical Expression},
+    doi = {},
+    issn = {2220-4806},
+    title = {Bibliometric Analysis of NIME References and Citations},
+    url = {http://nime.org/proceedings/2024/nime2024_15.pdf},
+    year = {2024}
+}
+```
+
+
+
 
 In the release section, there are versions of of this repository after the the execution of all scripts on a specific date. This include also all output and cache files except for the PDF associated with the papers (due to file size reason). Releases can be used run the meta and topic analysis without waiting for the pa.py script to generate the necessary files, or to force pa.py to update only selected outputs through the available arguments.
 
@@ -276,7 +313,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 If you use the NIME Proceedings Analyzer or any part of it in any program or
 publication, please acknowledge its authors by adding a reference to:
 
-J. Goode, S. Fasciani, A Toolkit for the Analysis of the NIME Proceedings
-Archive, in 2022 International Conference on New Interfaces for
-Musical Expression, Auckland, New Zealand, 2022.
+@inproceedings{NIME22_16,
+    address = {Auckland, New Zealand},
+    articleno = {16},
+    author = {Goode, Jackson and Fasciani, Stefano},
+    booktitle = {Proceedings of the International Conference on New Interfaces for Musical Expression},
+    doi = {10.21428/92fbeb44.58efca21},
+    issn = {2220-4806},
+    pdf = {13.pdf},
+    title = {A Toolkit for the Analysis of the {NIME} Proceedings Archive},
+    url = {https://doi.org/10.21428%2F92fbeb44.58efca21},
+    year = {2022}
+}
 ```
