@@ -284,9 +284,6 @@ The data presented in the paper has been manually polished and arranged in a [sp
 }
 ```
 
-
-
-
 In the release section, there are versions of of this repository after the the execution of all scripts on a specific date. This include also all output and cache files except for the PDF associated with the papers (due to file size reason). Releases can be used run the meta and topic analysis without waiting for the pa.py script to generate the necessary files, or to force pa.py to update only selected outputs through the available arguments.
 
 ## License
