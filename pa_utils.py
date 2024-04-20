@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2022 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ def calculate_carbon(pub):
 
     pa_print.tprint('\nCalculating carbon footprint...')
     for author in range(author_count):
-        if pub['author location info'][author] != 'N/A':
+        if pub['author location info'][author] != 'N/A' and pub['conference location info'][0] != 'N/A':
             distance = geodesic(pub['author location info'][author][2], pub['conference location info'][0][2]).km
             pub['author distances'].append(distance)
 
@@ -85,7 +85,7 @@ def fill_empty(pub):
     '''
     author_count = pub['author count']
 
-    # * citation numer and conference location info should be filled regardless
+    # * citation number and conference location info should be filled regardless
     # * author distances, author footprints, author loc queries, and author location info are filled elsewhere - issue #10
     # ? even if file is corrupt there may be some relevant info
     for entry in ['author infos', 'grobid addresses', 'grobid author names', 'grobid author unis', 'grobid emails', 'grobid organisations', 'text author unis']:
@@ -201,7 +201,7 @@ def boolify(ans, default=False):
         ans = default
     return ans
 
-def post_processing(pub):
+def post_processing(pub, args):
     col_countries, col_continents, col_institutions = [], [], []
     empty = [float('nan'), 'N/A']
     full_text = ''
@@ -231,7 +231,7 @@ def post_processing(pub):
     pub['institutions'] = institutions # this is a union list to derive location using uni or organisation
 
     # Iterate through article and get raw text
-    if 'pubpub' in pub['url']:
+    if pub['puppub']:
         file_name = f"nime{pub['year']}_{pub['articleno']}"
     else:
         file_name = pub['url'].split('/')[-1].split('.')[0]

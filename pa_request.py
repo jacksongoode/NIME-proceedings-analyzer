@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2022 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,9 +42,30 @@ from pa_utils import try_index
 geocoder = OpenCageGeocode('c55bcffbb38246aab6e54c136a5fac75')
 email_regex = re.compile(r'@[a-zA-Z0-9-–]+\.[a-zA-Z0-9-–.]+')
 
-def scholar_api(data):
-    query_result = requests.post('https://www.semanticscholar.org/api/1/search', json=data).json()
-    time.sleep(3) # max 100 requests per 5 minute
+def scholar_api_paper_search(query,key,sleep):
+    api = 'https://api.semanticscholar.org/graph/v1/paper/search?query='
+    fields = '&fields=authors,title,year,citationCount,influentialCitationCount'
+    if key != '':
+        api_key = '&x-api-key='+key
+        query_result = requests.get(api+query+fields+api_key).json()
+        time.sleep(sleep)
+    else:
+        query_result = requests.get(api+query+fields).json()
+        time.sleep(0.06) # default max 5000 requests per 5 minute
+    return query_result
+
+def scholar_api_paper_lookup(paper_id,key,sleep):
+    api = 'https://api.semanticscholar.org/graph/v1/paper/'
+    cit = 'citations.authors,citations.title,citations.year,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal,citations.publicationVenue'
+    ref = 'references.authors,references.title,references.year,references.s2FieldsOfStudy,references.publicationTypes,references.journal,references.publicationVenue'
+    fields = '?fields=title,authors,paperId,embedding,s2FieldsOfStudy,publicationTypes,publicationVenue,tldr,'+cit+','+ref             
+    if key != '':
+        api_key = '&x-api-key='+key
+        query_result = requests.get(api+paper_id+fields+api_key).json()
+        time.sleep(sleep)
+    else:
+        query_result = requests.get(api+paper_id+fields).json()
+        time.sleep(0.06) # default max 5000 requests per 5 minute
     return query_result
 
 def request_scholar(pub, args):
@@ -58,20 +79,6 @@ def request_scholar(pub, args):
     except FileNotFoundError:
         pa_print.tprint('\nCreating new Semantic Scholar cache!')
         scholar_cache = {}
-
-    semantic_scholar_data = {
-        "queryString": [],
-        "page": 1,
-        "pageSize": 1,
-        "sort": "relevance",
-        "authors": [],
-        "coAuthors": [],
-        "venues": [],
-        "yearFilter": None,
-        "requireViewablePdf": False,
-        "publicationTypes": [],
-        "externalContentTypes": []
-    }
 
     # Fix names for searching
     regextitle = re.compile(r'[^a-zA-Z0-9 ]')
@@ -88,8 +95,26 @@ def request_scholar(pub, args):
         if title == 'Now': # title is too short, this return other paper, trying to filter it out by forcing full author name
             author_last_list[0] = 'GarthPaine'
 
-    pub['citation count'] = 'N/A'
-    pub['key citation count'] = 'N/A'
+    pub['scholar query'] = 'N/A'
+    pub['scholar citation count'] = 'N/A'
+    pub['scholar influential citation count'] = 'N/A'
+    pub['scholar reference count'] = 'N/A'
+    pub['scholar paper id'] = 'N/A'
+    pub['scholar title'] = 'N/A'
+    pub['scholar authors id'] = ['N/A']*len(pub['author names'])
+    pub['scholar embedding'] = {}
+    pub['scholar tldr'] = {}
+    pub['scholar field of study'] = []
+    pub['scholar publication venue'] = {}
+    pub['scholar publication type'] = []
+    pub['scholar references'] = []
+    pub['scholar citations'] = []
+    pub['scholar references'] = []
+    pub['scholar valid'] = False
+    pub['scholar field of study'] = []
+    pub['scholar publication venue'] = []
+    pub['scholar publication type'] = []
+
 
     # Make query title, name and year lists
     query_title = list(dict.fromkeys([title, regextitle.sub('', title), ' '.join([w for w in title.split() if len(w)>1])]))
@@ -103,62 +128,124 @@ def request_scholar(pub, args):
     full_query = f"{title} {' '.join(author_last_list)} {pub['year']}"
     pub['scholar query'] = full_query
 
-    if full_query not in scholar_cache or args.citations:
+    if full_query not in scholar_cache:
         pa_print.tprint(f'\nQuerying Semantic Scholar...')
-        for temp in list(itertools.product(query_title, query_name, query_year)):
+        last_iter = False
+        lookup_result = {}
+        queries = list(itertools.product(query_title, query_name, query_year))
+        num_of_queries = len(queries)
+        
+        for idx,temp in enumerate(queries):
+            
+            # Checking if last query
+            if idx == (num_of_queries - 1):
+                last_iter = True
 
             # Generate new query from combination
             temp_title, temp_author, temp_year = temp[0], temp[1], temp[2]
             scholar_query = f'{temp_title} {temp_author} {temp_year}'
-            semantic_scholar_data['queryString'] = scholar_query
 
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
             try:
-                query_result = scholar_api(semantic_scholar_data)
-
+                query_result = scholar_api_paper_search(scholar_query,args.sskey,args.sleep)
             except Exception as e:
                 query_result = {'results' : {}}
                 err_info = 'x - While querying Semantic Scholar an exception of type {0} occurred.\nArguments:\n{1!r}.'
                 err_msg = err_info.format(type(e).__name__, e.args)
                 pa_print.tprint(err_msg)
-
-            if not 'error' in query_result.keys():
-                if bool(query_result['results']) and \
-                bool(query_result['results'][0]['scorecardStats']) and \
-                len(query_result['results'][0]['authors']) <= (len(author_last_list) + 1):
-                    result_author = ' '.join([t[0]['name'] for t in query_result['results'][0]['authors']])
+            
+            if not 'error' in query_result.keys() and 'data' in query_result and len(query_result['data']) > 0:
+                if ('citationCount' in query_result['data'][0] or last_iter) and len(query_result['data'][0]['authors']) <= (len(author_last_list) + 1):
+                    result_author = ' '.join([t['name'] for t in query_result['data'][0]['authors']])
                     result_author = regexname.sub('', unidecode.unidecode(result_author)).lower()
                     query_author = regexname.sub('', author_last_list[0].lower().split(' ')[-1])
+
                     if result_author.find(query_author) != -1:
-                        pub['scholar query'] = scholar_query
-                        pub['citation count'] = query_result['results'][0]['scorecardStats'][0]['citationCount']
-                        pub['key citation count'] = query_result['results'][0]['scorecardStats'][0]['keyCitationCount']
-                        scholar_cache[full_query] = query_result['results'][0]['scorecardStats']
-                        pa_print.tprint(f"✓ - Paper has been cited {pub['citation count']} times")
+                        # if paper never cited, creating citation fields and setting to 0 
+                        if ('citationCount' not in query_result['data'][0]):
+                            query_result['data'][0]['citationCount'] = 0
+                            query_result['data'][0]['influentialCitationCount'] = 0
+
+                        pub['scholar citation count'] = query_result['data'][0]['citationCount']
+                        pub['scholar influential citation count'] = query_result['data'][0]['influentialCitationCount']
+                        pub['scholar paper id'] = query_result['data'][0]['paperId']
+                        pub['scholar title'] = query_result['data'][0]['title']
+                        pub['scholar authors id'] = [t['authorId'] for t in query_result['data'][0]['authors']]
+                        scholar_cache[full_query] = query_result
+
+                        if pub['scholar paper id'] not in scholar_cache:
+                            pa_print.tprint(f'\nSemantic Scholar paper lookup...')
+                            lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
+                            if 'message' not in lookup_result:
+                                scholar_cache[pub['scholar paper id']] = lookup_result
+                        else:
+                            lookup_result = scholar_cache[pub['scholar paper id']]
+                        
+                        pa_print.tprint(f"✓ - Paper has been cited {pub['scholar citation count']} times")
+
                         break
 
-        if pub['citation count'] == 'N/A':
-            pa_print.tprint('x - Cannot find citations for paper in Semantic Scholar')
-            scholar_cache[full_query] = 'N/A'
+        if pub['scholar citation count'] == 'N/A':
+            pa_print.tprint('x - Cannot find paper in Semantic Scholar')
+            #scholar_cache[full_query] = 'N/A'
 
         with open('./cache/json/scholar_cache.json','wb') as fp:
             fp.write(orjson.dumps(scholar_cache))
 
     else:
         if scholar_cache[full_query] != 'N/A':
-            pub['citation count'] = scholar_cache[full_query][0]['citationCount']
-            pub['key citation count'] = scholar_cache[full_query][0]['keyCitationCount']
-        else:
-            pub['citation count'] = 'N/A'
-            pub['key citation count'] = 'N/A'
+            pub['scholar citation count'] = scholar_cache[full_query]['data'][0]['citationCount']
+            pub['scholar influential citation count'] = scholar_cache[full_query]['data'][0]['influentialCitationCount']
+            pub['scholar paper id'] = scholar_cache[full_query]['data'][0]['paperId']
+            pub['scholar title'] = scholar_cache[full_query]['data'][0]['title']
+            pub['scholar authors id'] = [t['authorId'] for t in scholar_cache[full_query]['data'][0]['authors']]
+            if 'embedding' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar embedding'] = scholar_cache[pub['scholar paper id']]['embedding']
+            if 'tldr' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar tldr'] = scholar_cache[pub['scholar paper id']]['tldr']
+            if 'citations' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar citations'] = scholar_cache[pub['scholar paper id']]['citations']
+            if 'references' in scholar_cache[pub['scholar paper id']]:
+                pub['scholar references'] = scholar_cache[pub['scholar paper id']]['references']
+                pub['scholar reference count'] = len(scholar_cache[pub['scholar paper id']]['references'])
+                if pub['scholar reference count'] > 0:
+                    pub['scholar valid'] = True
 
-        pa_print.tprint(f"\no - Retrieved from cache: {pub['citation count']} citations")
+            if pub['scholar paper id'] not in scholar_cache:
+                pa_print.tprint(f'\nSemantic Scholar paper lookup...')
+                lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
+                scholar_cache[pub['scholar paper id']] = lookup_result
+            else:
+                lookup_result = scholar_cache[pub['scholar paper id']]
+
+        pa_print.tprint(f"\no - Retrieved from cache: {pub['scholar citation count']} citations")
+
+    if lookup_result:
+        if 'embedding' in lookup_result:
+            pub['scholar embedding'] = lookup_result['embedding']
+        if 'tldr' in lookup_result:
+            pub['scholar tldr'] = lookup_result['tldr']
+        if 's2FieldsOfStudy' in lookup_result:
+            pub['scholar field of study'] = lookup_result['s2FieldsOfStudy']
+        if 'publicationTypes' in lookup_result:
+            pub['scholar publication venue'] = lookup_result['publicationVenue']
+        if 'publicationTypes' in lookup_result:
+            pub['scholar publication type'] = lookup_result['publicationTypes']
+        if 'citations' in lookup_result:
+            pub['scholar citations'] = lookup_result['citations']
+        if 'references' in lookup_result:
+            pub['scholar references'] = lookup_result['references']
+            pub['scholar reference count'] = len(lookup_result['references'])
+            if pub['scholar reference count'] > 0:
+                pub['scholar valid'] = True
 
     # Average citations per year of age
-    if pub['citation count'] != 'N/A':
-        pub['yearly citations'] = int(pub['citation count']) / pub['age']
-    else: pub['yearly citations'] = 'N/A'
+    if pub['scholar citation count'] != 'N/A':
+        if pub['age'] == 0:
+            pub['age'] = 1
+        pub['scholar yearly citations'] = int(pub['scholar citation count']) / pub['age']
+    else: pub['scholar yearly citations'] = 'N/A'
 
 def request_location(author_info, args, pub):
     ''' Extracts location from author blocks or universities and queries OpenCageGeocode
@@ -170,7 +257,8 @@ def request_location(author_info, args, pub):
     # Conference location lookup
     cnf_query = pub['address']
     query_type = 'conference'
-    query_location(cnf_query, query_type, pub) # *** creates unneeded columns ***
+
+    query_location(cnf_query, query_type, pub, args) # *** creates unneeded columns ***
 
     # Author location lookup
     for author in range(author_count): # length of usable locations
@@ -210,9 +298,9 @@ def request_location(author_info, args, pub):
         pa_print.tprint(f'\nLooking for: {location_query}')
         pub['author loc queries'].append(location_query)
         pub['author query origins'].append(query_origin)
-        query_location(location_query, query_type, pub)
+        query_location(location_query, query_type, pub, args)
 
-def query_location(location_query, query_type, pub): # 'query_type is now only used to print status
+def query_location(location_query, query_type, pub, args): # 'query_type is now only used to print status
     # Load cache
     try:
         with open('./cache/json/location_cache.json','rb') as fp:
@@ -224,10 +312,9 @@ def query_location(location_query, query_type, pub): # 'query_type is now only u
     # Not cached
     if location_query not in location_cache:
         try:
-            # location = geolocator.geocode(location_query, language="en") # Nominatim fallback
+            geocoder = OpenCageGeocode(args.ockey)
             # OpenCageGeocode: 2,500 req/day, 1 req/s - https://github.com/OpenCageData/python-opencage-geocoder
             location = geocoder.geocode(location_query, language='en', limit=1, no_annotations=1, no_record=1)[0]
-
             # Format result
             geometry = location['geometry'] # lat/long
             components = location['components'] # fine loc info
@@ -242,12 +329,14 @@ def query_location(location_query, query_type, pub): # 'query_type is now only u
             pa_print.tprint(f'✓ - Parsed {query_type} location: {location_info[0]}')
             time.sleep(1+random.random())
 
-        except: # API fails
-            location_cache[location_query] = 'N/A'
+        except Exception as e: # API fails    
+            #location_cache[location_query] = 'N/A'
             pub[f'{query_type} location info'].append('N/A')
             pub[f'{query_type} location confidence'].append('N/A')
-            pa_print.tprint(f'x - Could not parse {query_type} location: {location_query}')
-
+            err_info = 'x - Could not parse {0} location: {1}, while querying Open Cage Data an exception of type {2} occurred.\nArguments:\n{3!r}.'
+            err_msg = err_info.format(query_type,location_query,type(e).__name__, e.args)
+            pa_print.tprint(err_msg)
+        
         # Save changes to cache
         with open('./cache/json/location_cache.json','wb') as fp:
             fp.write(orjson.dumps(location_cache))

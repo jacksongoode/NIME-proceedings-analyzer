@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2022 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 
 # Native
 import sys
-if sys.version_info < (3, 7):
-    print("Please upgrade Python to version 3.7.0 or higher")
+if sys.version_info < (3, 11):
+    print("Please upgrade Python to version 3.11.0 or higher")
     sys.exit()
 import os
 import warnings
@@ -83,9 +83,11 @@ if __name__ == "__main__":
     year_list = []
     for i in os.listdir(grobid_text_src):
         if i.startswith('grob_'):
-            name = i.split('grob_nime')[-1]
-            year = name.split('_')[0]
-            year_list.append((int(year), name))
+            name = i.lower().split('grob_nime')[-1]
+            year = int(name.split('_')[0])
+            if year < 2000: # handle PubPub grobid named only with last 2 digits of the year
+                year = year + 2000                
+            year_list.append((year, name))
 
     keyword_frequency = pd.DataFrame(index = year_range, columns = keywords)
 

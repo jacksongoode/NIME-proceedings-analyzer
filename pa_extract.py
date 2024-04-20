@@ -1,5 +1,5 @@
 # This file is part of the NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2022 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -83,10 +83,11 @@ def extract_bib(pub, args):
     pub['author count'] = author_count
 
     bad_names = ['professor', 'dr.'] # names to remove
-    allowed_names = ['d\'', 'di', 'da', 'de', 'do', 'du', 'des', 'af', 'von', 'van', 'los', 'mc', 'of', 'zu']
+    allowed_names = ['d\'', 'di', 'da', 'de', 'do', 'du', 'des', 'af', 'von', 'van', 'los', 'mc', 'of', 'zu','o\'']
     regexname = re.compile(r'[^a-zA-Z- ]')
 
     for _, author in enumerate(authors): # break up names
+        
         first = unidecode(author.split(', ', 1)[-1] if ', ' in author else author.split(' ', 1)[0])
         last = unidecode(author.split(', ', 1)[0] if ', ' in author else author.split(' ', 1)[-1])
 
@@ -102,7 +103,7 @@ def extract_bib(pub, args):
         first = regexname.sub('', first)
 
         # Last name
-        if last[:2].lower() != 'd\'':
+        if last[:2].lower() not in ['d\'','o\'']:
             last = [part for part in last.split(' ') if not part.lower() in bad_names]
             if str.lower(last[0]) in allowed_names:
                 last = ' '.join(last)
@@ -192,6 +193,8 @@ def extract_bib(pub, args):
     # Age of papers
     pub['age'] = datetime.datetime.now().year - int(pub['year'])
 
+
+
 def download_pdf(pdf_path, pub):
     pa_print.tprint('\nLocal PDF not found - downloading...')
     url = pub['url']
@@ -212,7 +215,11 @@ def extract_text(pub):
 
     :publication (article) from database
     '''
-    pdf_fn = pub['url'].split('/')[-1]
+    if pub['puppub'] == False:
+        pdf_fn = pub['url'].split('/')[-1]
+    else:
+        pdf_fn = pub['ID']+'.pdf'
+
     pdf_path = pdf_src + pdf_fn
 
     # Allows for override of corrupted pdfs
@@ -263,7 +270,7 @@ def extract_text(pub):
 
         return doc
 
-def extract_grobid(pub, bib_db, iterator):
+def extract_grobid(pub, bib_db, iterator, args, pubpub_years):
     '''Parse xml files output from Grobid service (3rd party utility needed to generate files)
 
     :publication (article) from database
@@ -274,10 +281,13 @@ def extract_grobid(pub, bib_db, iterator):
         else:
             return fill
 
-    if 'pubpub' in pub['url']:
-        xml_name = f"nime{pub['year']}_{pub['articleno']}.xml"
+    if pub['puppub']:
+        if args.pdf:
+            xml_name = f"{pub['ID']}.grobid.tei.xml"
+        else:
+            xml_name = f"nime{pub['year']}_{pub['articleno']}.xml"
     else:
-        xml_name = pub['url'].split('/')[-1].split('.')[0]+'.tei.xml'
+        xml_name = pub['url'].split('/')[-1].split('.')[0]+'.grobid.tei.xml'
 
     xml_path = xml_src + xml_name
 
@@ -297,7 +307,7 @@ def extract_grobid(pub, bib_db, iterator):
         authors = soup.analytic.find_all('author')
 
         for author in authors:
-            persname = author.persname
+            persname = author.persName
             if persname:
                 firstname = elem_text(persname.find("forename", type="first"), '')
                 middlename = elem_text(persname.find("forename", type="middle"), '')
@@ -341,7 +351,7 @@ def extract_grobid(pub, bib_db, iterator):
             # PubPub tei's have expansive body
             # /n and spaces need to be addressed
             grob_text = []
-            grob_body = soup.body.find_all('p')
+            grob_body = soup.find_all('p')
             for p in grob_body:
                 p = re.sub(r'\s+', ' ', elem_text(p)).strip()
                 grob_text.append(p)
@@ -354,10 +364,10 @@ def extract_grobid(pub, bib_db, iterator):
         pass
     else: # No XML - populate
         pa_print.tprint('\nGrobid XML does not exist for paper!')
-        if 'pubpub' in pub['url']:
-            check_xml(bib_db, jats=True)
+        if pub['puppub'] == False or args.pdf:
+            check_xml(bib_db, args, False, False, pubpub_years)
         else:
-            check_xml(bib_db)
+            check_xml(bib_db, args, True, False, pubpub_years)
         iterator.clear()
         iterator.refresh()
 
@@ -466,7 +476,7 @@ def clean_text(doc, user_config=None, miner=False):
         ignore_words =  user_config[1]
         merge_words =  user_config[2]
         # selected_years =  user_config[3]
-
+    
     if miner is True: # no need to trim with grobid text
         doc_trimmed = trim_headfoot(doc)
 

@@ -1,5 +1,5 @@
 # NIME Proceedings Analyzer (NIME PA)
-# Copyright (C) 2022 Jackson Goode, Stefano Fasciani
+# Copyright (C) 2024 Jackson Goode, Stefano Fasciani
 
 # The NIME PA is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 
 # Native
 import sys
-if sys.version_info < (3, 7):
-    print("Please upgrade Python to version 3.7.0 or higher")
+if sys.version_info < (3, 11):
+    print("Please upgrade Python to version 3.11.0 or higher")
     sys.exit()
 import os
 import argparse
@@ -43,6 +43,7 @@ from pa_load import prep, load_unidomains, load_bibtex, extract_bibtex, check_xm
 # Variables/paths
 bibtex_path = os.getcwd()+'/cache/bibtex/nime_papers.bib'
 unidomains_path = os.getcwd()+'/cache/json/unidomains.json'
+pubpub_years = ['2021', '2022']
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze a publication given a BibTeX and directory of pdf documents')
@@ -56,7 +57,15 @@ if __name__ == "__main__":
                         help='deletes cache')
     parser.add_argument('-n', '--nime', action='store_true', default=False,
                         help='uses NIME based corrections')
-
+    parser.add_argument('-p', '--pdf', action='store_true', default=False,
+                        help='use manually downloaded pdf for PubPub publications')
+    parser.add_argument('-ock', '--ockey', type=str, default='',
+                       help='OpenCage Geocoding API key')
+    parser.add_argument('-ssk', '--sskey', type=str, default='',
+                       help='Semantic Scholar API key')
+    parser.add_argument('-s', '--sleep', type=float, default=3,
+                        help='sleep time (sec) between Semantic Scholar API calls')
+    
     args = parser.parse_args()
 
     # * Set global print command
@@ -77,7 +86,7 @@ if __name__ == "__main__":
 
     # * Loop here for Grobid/PDF population
     if args.grobid:
-        check_xml(bib_db, True)
+        check_xml(bib_db, args, False, True, pubpub_years)
 
     # * Parse data through pdfs
     print('\nExtracting and parsing publication data...')
@@ -85,8 +94,14 @@ if __name__ == "__main__":
     for _, pub in enumerate(iterator):
         pa_print.tprint(f"\n--- Now on: {pub['title']} ---")
 
-        # Extract text from pdf if not PubPub
-        if 'pubpub' not in pub['url']:
+        # check if on PubPub
+        if pub['year'] not in pubpub_years:
+            pub['puppub'] = False
+        else:
+            pub['puppub'] = True
+        
+        # Extract text from pdf if not PubPub or if forced to manually downloaded pdf
+        if pub['puppub'] == False or args.pdf:
             doc = extract_text(pub)
             errored = doc_quality(doc, pub, 'text') # check for errors
 
@@ -99,7 +114,7 @@ if __name__ == "__main__":
             author_info = []
 
         # Extract doc from Grobid
-        doc = extract_grobid(pub, bib_db, iterator)
+        doc = extract_grobid(pub, bib_db, iterator, args, pubpub_years)
         doc_quality(doc, pub, 'grobid')
 
         # Get university from various sources
@@ -115,7 +130,7 @@ if __name__ == "__main__":
         request_scholar(pub, args)
 
         # Post processing modifications
-        post_processing(pub)
+        post_processing(pub, args)
 
         # Save for every paper
         csv_save(bib_db)
