@@ -195,14 +195,11 @@ def request_scholar(pub, args):
 
     else:
         if scholar_cache[full_query] != 'N/A':
-            print(full_query)
-            print(scholar_cache[full_query])
             pub['scholar citation count'] = scholar_cache[full_query]['data'][0]['citationCount']
             pub['scholar influential citation count'] = scholar_cache[full_query]['data'][0]['influentialCitationCount']
             pub['scholar paper id'] = scholar_cache[full_query]['data'][0]['paperId']
             pub['scholar title'] = scholar_cache[full_query]['data'][0]['title']
             pub['scholar authors id'] = [t['authorId'] for t in scholar_cache[full_query]['data'][0]['authors']]
-            print(pub['scholar paper id'])
 
             if pub['scholar paper id'] not in scholar_cache:
                 pa_print.tprint(f'\nSemantic Scholar paper lookup...')
