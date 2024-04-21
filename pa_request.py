@@ -28,12 +28,15 @@ import re
 import datetime
 import itertools
 import requests
+import os
 
 # External
 import orjson
 import unidecode
 from opencage.geocoder import OpenCageGeocode
 from tqdm import tqdm
+from dotenv import find_dotenv, load_dotenv
+load_dotenv(find_dotenv())
 
 # Helper
 import pa_print
@@ -147,8 +150,12 @@ def request_scholar(pub, args):
 
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
+
+            # Set key either through arg or .env
+            sskey = args.sskey or os.getenv('SSKEY') or ''
+
             try:
-                query_result = scholar_api_paper_search(scholar_query,args.sskey,args.sleep)
+                query_result = scholar_api_paper_search(scholar_query,sskey,args.sleep)
             except Exception as e:
                 query_result = {'results' : {}}
                 err_info = 'x - While querying Semantic Scholar an exception of type {0} occurred.\nArguments:\n{1!r}.'
@@ -176,7 +183,7 @@ def request_scholar(pub, args):
 
                         if pub['scholar paper id'] not in scholar_cache:
                             pa_print.tprint(f'\nSemantic Scholar paper lookup...')
-                            lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
+                            lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],sskey,args.sleep)
                             if 'message' not in lookup_result:
                                 scholar_cache[pub['scholar paper id']] = lookup_result
                         else:
@@ -203,7 +210,7 @@ def request_scholar(pub, args):
 
             if pub['scholar paper id'] not in scholar_cache:
                 pa_print.tprint(f'\nSemantic Scholar paper lookup...')
-                lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
+                lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],sskey,args.sleep)
                 scholar_cache[pub['scholar paper id']] = lookup_result
             else:
                 lookup_result = scholar_cache[pub['scholar paper id']]
@@ -313,7 +320,10 @@ def query_location(location_query, query_type, pub, args): # 'query_type is now 
     # Not cached
     if location_query not in location_cache:
         try:
-            geocoder = OpenCageGeocode(args.ockey)
+            geocoder = OpenCageGeocode(args.ockey or os.getenv('OCKEY'))
+            if geocoder is None:
+                raise Exception("Error: OpenCage API key not provided")
+
             # OpenCageGeocode: 2,500 req/day, 1 req/s - https://github.com/OpenCageData/python-opencage-geocoder
             location = geocoder.geocode(location_query, language='en', limit=1, no_annotations=1, no_record=1)[0]
             # Format result

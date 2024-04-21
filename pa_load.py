@@ -34,6 +34,7 @@ import concurrent.futures
 import threading
 import re
 import sys
+import pathlib
 
 # External
 from tqdm import tqdm
@@ -204,7 +205,12 @@ def check_xml(bib_db, args, jats=False, overwrite=False, pubpub_years=[]):
 
         # Multithread downloads - with urls (values) and fn's (keys)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            executor.map(download_url, f_dict.values(), f_dict.keys(), [dl_path]*len(f_dict))
+            futures = [executor.submit(download_url, url, filename, dl_path) \
+                for filename, url in f_dict.items()]
+            for future in tqdm(concurrent.futures.as_completed(futures),
+                               total=len(futures), desc='PDF download', unit='files'):
+                future.result()
+        return
 
     xmls = os.listdir(xml_src)
     thread_local = threading.local()
@@ -254,8 +260,12 @@ def check_xml(bib_db, args, jats=False, overwrite=False, pubpub_years=[]):
                 pa_print.tprint(f'{len(missing_files)} PDFs from PubPub papers are missing, manually download them to the folder ./resources/pubpub - Missing files: {missing_files}')
                 sys.exit()
 
-        # Download pdfs
-        missing_files = set(pdf_dict.keys()) - set(pdfs)
+        # Download pdfs, exclude any invalid
+        exclude_pdf_path = 'resources/exclude_pdfs.txt'
+        invalid_pdfs = [line.strip() for line in open(exclude_pdf_path, 'r')] \
+                        if os.path.exists(exclude_pdf_path) else []
+
+        missing_files = set(pdf_dict.keys()) - set(pdfs) - set(invalid_pdfs)
         if len(missing_files) > 0:
             multithread_dls(unconverted_pdfs, pdf_dict, pdf_src)
 
@@ -315,50 +325,61 @@ def generate_teis(missing_jats):
         os.renames(temp_dir+f, jats_src+f)
 
 
-def generate_grobid(overwrite=False):
-    ''' Convert a pdf to a .tei.xml file via Grobid
+def get_latest_grobid_version():
+    base_url = 'https://github.com/kermitt2/grobid/'
+    return requests.get(base_url + 'releases/latest').url.split('/')[-1]
 
-    '''
 
-    # Get latest Grobid release
-    base = 'https://github.com/kermitt2/grobid/'
-    version = requests.get(base+'/releases/latest').url.split('/')[-1]
-    
-    #version = requests.get('https://github.com/kermitt2/grobid/releases/tag/0.7.2').url.split('/')[-1] # Force to work with Grobid 0.7.2
+def install_grobid(version):
+    cache_dir = pathlib.Path('./cache')
+    grobid_dir = cache_dir / f'grobid-{version}'
 
-    if not os.path.exists(f'./cache/grobid-{version}'):
+    if not grobid_dir.exists():
         pa_print.tprint('\nInstalling Grobid!')
         try:
-            pa_print.tprint('Downloading and extracting...')
-            zip_path, _ = urllib.request.urlretrieve(
-                f'{base}archive/refs/tags/{version}.zip')
+            zip_path, _ = urllib.request.urlretrieve(f'https://github.com/kermitt2/grobid/archive/refs/tags/{version}.zip')
             with zipfile.ZipFile(zip_path, 'r') as f:
-                f.extractall('./cache')
+                f.extractall(cache_dir)
 
             pa_print.tprint('Installing...')
-            oschmod.set_mode(f'./cache/grobid-{version}/gradlew', '+x')
-            subprocess.run(f'cd ./cache/grobid-{version} '
-                           '&& ./gradlew clean install', shell=True)
-            exec_dir = f'./cache/grobid-{version}/grobid-home/'
-            for folder in [exec_dir+'pdf2xml', exec_dir+'pdfalto']:
+            oschmod.set_mode(grobid_dir / 'gradlew', '+x')
+            subprocess.run(['cd', grobid_dir, '&&', './gradlew', 'clean', 'install'], shell=True)
+
+            exec_dir = grobid_dir / 'grobid-home'
+            for folder in [exec_dir / 'pdf2xml', exec_dir / 'pdfalto']:
                 for root, _, files in os.walk(folder):
                     for f in files:
                         oschmod.set_mode(os.path.join(root, f), '+x')
 
+
         except Exception as e:
             pa_print.tprint(e)
-            pa_print.tprint('\nFailed to install Grobid!')
+            pa_print.tprint(f'\nFailed to install Grobid: {e}')
 
+
+def start_grobid_server(grobid_dir):
     pa_print.tprint('\nConverting PDFs to XMLs via Grobid - this may take some time...')
+    subprocess.run(['./gradlew', '--stop'], cwd=grobid_dir, stderr=subprocess.DEVNULL)
 
-    # Kill untracked server if exists
-    subprocess.run(['./gradlew', '--stop'], cwd=f'./cache/grobid-{version}', stderr=subprocess.DEVNULL)
+    p = subprocess.Popen(['./gradlew', 'run'], cwd=grobid_dir, stdout=subprocess.DEVNULL)
 
-    p = subprocess.Popen(
-        ['./gradlew', 'run'], cwd=f'./cache/grobid-{version}', stdout=subprocess.DEVNULL)
-    for _ in tqdm(range(60), desc='Initiating Grobid server'):
-        time.sleep(1)  # wait for Grodid to run, might need to be longer
+    # Start the Grobid server and return the process once it's alive
+    start_time = time.time()
+    for _ in tqdm(range(60), desc='Waiting for Grobid server to start'):
+        try:
+            response = requests.get('http://localhost:8070/api/isalive', timeout=5)
+            if response.status_code == 200 and response.json() is True:
+                break
+        except (requests.ConnectionError, requests.Timeout):
+            pass
+        if time.time() - start_time > 60:
+            break
+        time.sleep(1)
 
+    return p
+
+
+def process_documents(grobid_dir, overwrite, pdf_src, xml_src):
     if overwrite:
         shutil.rmtree('./cache/xml')
 
@@ -368,6 +389,15 @@ def generate_grobid(overwrite=False):
                    consolidate_header=True, consolidate_citations=True,
                    include_raw_affiliations=True, include_raw_citations=True)
 
-    p.terminate()
 
-    subprocess.run(['./gradlew', '--stop'], cwd=f'./cache/grobid-{version}', stderr=subprocess.DEVNULL)
+def generate_grobid(overwrite=False):
+    version = get_latest_grobid_version()
+    install_grobid(version)
+
+    grobid_dir = pathlib.Path('./cache') / f'grobid-{version}'
+    p = start_grobid_server(grobid_dir)
+
+    process_documents(grobid_dir, overwrite, pdf_src, xml_src)
+
+    p.terminate()
+    subprocess.run(['./gradlew', '--stop'], cwd=grobid_dir, stderr=subprocess.DEVNULL)
