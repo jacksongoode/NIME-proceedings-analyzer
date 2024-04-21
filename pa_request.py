@@ -195,11 +195,22 @@ def request_scholar(pub, args):
 
     else:
         if scholar_cache[full_query] != 'N/A':
+            print(full_query)
+            print(scholar_cache[full_query])
             pub['scholar citation count'] = scholar_cache[full_query]['data'][0]['citationCount']
             pub['scholar influential citation count'] = scholar_cache[full_query]['data'][0]['influentialCitationCount']
             pub['scholar paper id'] = scholar_cache[full_query]['data'][0]['paperId']
             pub['scholar title'] = scholar_cache[full_query]['data'][0]['title']
             pub['scholar authors id'] = [t['authorId'] for t in scholar_cache[full_query]['data'][0]['authors']]
+            print(pub['scholar paper id'])
+
+            if pub['scholar paper id'] not in scholar_cache:
+                pa_print.tprint(f'\nSemantic Scholar paper lookup...')
+                lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
+                scholar_cache[pub['scholar paper id']] = lookup_result
+            else:
+                lookup_result = scholar_cache[pub['scholar paper id']]
+            
             if 'embedding' in scholar_cache[pub['scholar paper id']]:
                 pub['scholar embedding'] = scholar_cache[pub['scholar paper id']]['embedding']
             if 'tldr' in scholar_cache[pub['scholar paper id']]:
@@ -211,13 +222,6 @@ def request_scholar(pub, args):
                 pub['scholar reference count'] = len(scholar_cache[pub['scholar paper id']]['references'])
                 if pub['scholar reference count'] > 0:
                     pub['scholar valid'] = True
-
-            if pub['scholar paper id'] not in scholar_cache:
-                pa_print.tprint(f'\nSemantic Scholar paper lookup...')
-                lookup_result = scholar_api_paper_lookup(pub['scholar paper id'],args.sskey,args.sleep)
-                scholar_cache[pub['scholar paper id']] = lookup_result
-            else:
-                lookup_result = scholar_cache[pub['scholar paper id']]
 
         pa_print.tprint(f"\no - Retrieved from cache: {pub['scholar citation count']} citations")
 

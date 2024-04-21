@@ -619,15 +619,13 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
         if any(cit_df['paperId'].isin([ref['paperId']])):
             cit_idx = np.where(cit_df['paperId'] == ref['paperId'])
             cit_idx = cit_idx[0][0]
-            if not ref_cit_df.empty:
-                ref_cit_df = pd.concat([ref_cit_df, pd.DataFrame([ref])], ignore_index=True)
-            else:
-                ref_cit_df = pd.DataFrame([ref]).copy()
+            ref_cit_df = pd.concat([ref_cit_df, pd.DataFrame([ref])], ignore_index=True)
             ref_cit_df.at[idx, 'cit count'] = cit_df.at[cit_idx, 'count']
             ref_cit_df.at[idx, 'ref+cit count'] = ref_cit_df.at[idx, 'count'] + ref_cit_df.at[idx, 'cit count']
             idx = idx + 1
     
-    ref_cit_df = ref_cit_df.rename(columns = {'count':'ref count'})
+    ref_cit_df = ref_cit_df.rename(columns = {'count':'count of appearances in ref list of NIME papers'})
+    ref_cit_df = ref_cit_df.rename(columns = {'cit count':'count of number of NIME papers in its ref list'})
     ref_cit_df = ref_cit_df.drop(columns=['count x cit', 'count_year'])
 
     outtxt += '\nNumber of papers in both references and citations %d out of which %d in NIME' % (len(ref_cit_df.index), len(ref_cit_df[ref_cit_df['in NIME'] ==  True]))
@@ -684,7 +682,11 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
     embedding_cit_count_array = np.array(embedding_cit_count_list)
     embedding_inf_cit_count_array = np.array(embedding_inf_cit_count_list)   
 
-    embedding_dr = TSNE(n_components=2, learning_rate='auto',init='random', perplexity=25).fit_transform(embedding_array)
+    perplexity = 25
+    if embedding_array.shape[0] <= 25:
+        perplexity = embedding_array.shape[0] - 1
+
+    embedding_dr = TSNE(n_components=2, learning_rate='auto',init='random', perplexity=perplexity).fit_transform(embedding_array)
     colors = cm.nipy_spectral(np.linspace(0.03, 0.97, len(years_rel)))
     
     figure = plt.figure()
