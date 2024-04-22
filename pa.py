@@ -42,7 +42,8 @@ bibtex_path = os.getcwd() + "/cache/bibtex/nime_papers.bib"
 unidomains_path = os.getcwd() + "/cache/json/unidomains.json"
 pubpub_years = ["2021", "2022"]
 
-if __name__ == "__main__":
+
+def get_args():
     parser = argparse.ArgumentParser(
         description="Analyze a publication given a BibTeX and directory of pdf documents"
     )
@@ -98,7 +99,11 @@ if __name__ == "__main__":
         help="sleep time (sec) between Semantic Scholar API calls",
     )
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = get_args()
 
     # * Set global print command
     pa_print.init(args)
