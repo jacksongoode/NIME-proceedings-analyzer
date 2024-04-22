@@ -44,20 +44,23 @@ geocoder = OpenCageGeocode("c55bcffbb38246aab6e54c136a5fac75")
 email_regex = re.compile(r"@[a-zA-Z0-9-–]+\.[a-zA-Z0-9-–.]+")
 
 
-def scholar_api_paper_search(query, key, sleep):
+def scholar_api_paper_search(query, key, sleep, wait):
     api = "https://api.semanticscholar.org/graph/v1/paper/search?query="
     fields = "&fields=authors,title,year,citationCount,influentialCitationCount"
-    if key != "":
-        api_key = "&x-api-key=" + key
-        query_result = requests.get(api + query + fields + api_key).json()
-        time.sleep(sleep)
-    else:
-        query_result = requests.get(api + query + fields).json()
-        time.sleep(0.06)  # default max 5000 requests per 5 minute
+
+    query_result = {'message': 'init'}
+    while ("message" in query_result.keys() and wait):
+        if key != "":
+            api_key = "&x-api-key=" + key
+            query_result = requests.get(api + query + fields + api_key).json()
+            time.sleep(sleep)
+        else:
+            query_result = requests.get(api + query + fields).json()
+            time.sleep(sleep)
     return query_result
 
 
-def scholar_api_paper_lookup(paper_id, key, sleep):
+def scholar_api_paper_lookup(paper_id, key, sleep, wait):
     api = "https://api.semanticscholar.org/graph/v1/paper/"
     cit = "citations.authors,citations.title,citations.year,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal,citations.publicationVenue"
     ref = "references.authors,references.title,references.year,references.s2FieldsOfStudy,references.publicationTypes,references.journal,references.publicationVenue"
@@ -67,13 +70,16 @@ def scholar_api_paper_lookup(paper_id, key, sleep):
         + ","
         + ref
     )
-    if key != "":
-        api_key = "&x-api-key=" + key
-        query_result = requests.get(api + paper_id + fields + api_key).json()
-        time.sleep(sleep)
-    else:
-        query_result = requests.get(api + paper_id + fields).json()
-        time.sleep(0.06)  # default max 5000 requests per 5 minute
+
+    query_result = {'message': 'init'}
+    while ("message" in query_result.keys() and wait):
+        if key != "":
+            api_key = "&x-api-key=" + key
+            query_result = requests.get(api + paper_id + fields + api_key).json()
+            time.sleep(sleep)
+        else:
+            query_result = requests.get(api + paper_id + fields).json()
+            time.sleep(sleep)
     return query_result
 
 
@@ -184,20 +190,22 @@ def request_scholar(pub, args):
 
                 if len(manual_id)>0:
                     lookup_result = scholar_api_paper_lookup(
-                        manual_id, sskey, args.sleep
+                        manual_id, sskey, args.sleep, args.wait
                     )
                     
                     if "message" not in lookup_result and "error" not in lookup_result:
                         temp_title, temp_author = lookup_result["title"], lookup_result["authors"][0]["name"]
-                        scholar_query = f"{temp_title} {temp_author}"
+                        scholar_query = f"{temp_title}"
                         force = True
+                    elif "message" in lookup_result:
+                        pa_print.tprint(f"Lookup returned: '{lookup_result}'")
 
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
 
             try:
                 query_result = scholar_api_paper_search(
-                    scholar_query, sskey, args.sleep
+                    scholar_query, sskey, args.sleep, args.wait
                 )
             except Exception as e:
                 query_result = {"results": {}}
@@ -205,9 +213,13 @@ def request_scholar(pub, args):
                 err_msg = err_info.format(type(e).__name__, e.args)
                 pa_print.tprint(err_msg)
 
+            if "message" in query_result:
+                pa_print.tprint(f"Search returned: '{query_result}'")
+
             if (
-                not "error" in query_result.keys()
-                and "data" in query_result
+                not "message" in query_result.keys()
+                and not "error" in query_result.keys()
+                and "data" in query_result.keys()
                 and len(query_result["data"]) > 0
             ):
                 if ("citationCount" in query_result["data"][0] or last_iter) and (len(
@@ -250,7 +262,7 @@ def request_scholar(pub, args):
                         if pub["scholar paper id"] not in scholar_cache:
                             pa_print.tprint(f"\nSemantic Scholar paper lookup...")
                             lookup_result = scholar_api_paper_lookup(
-                                pub["scholar paper id"], sskey, args.sleep
+                                pub["scholar paper id"], sskey, args.sleep, args.wait
                             )
                             if "message" not in lookup_result:
                                 scholar_cache[pub["scholar paper id"]] = lookup_result
@@ -288,7 +300,7 @@ def request_scholar(pub, args):
             if pub["scholar paper id"] not in scholar_cache:
                 pa_print.tprint(f"\nSemantic Scholar paper lookup...")
                 lookup_result = scholar_api_paper_lookup(
-                    pub["scholar paper id"], sskey, args.sleep
+                    pub["scholar paper id"], sskey, args.sleep, args.wait
                 )
                 scholar_cache[pub["scholar paper id"]] = lookup_result
             else:

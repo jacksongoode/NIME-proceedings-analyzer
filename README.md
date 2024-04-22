@@ -58,7 +58,8 @@ The script accepts the following optional arguments:
 - **-h, --help** show this help message and exit
 - **-v, --verbose** prints out operations
 - **-c, --citations** bypass cache to retrieve new citations
-- **-m, --manual** ask Semantic Scholar ID when paper not automatically found
+- **-m, --manual** ask user for Semantic Scholar ID when paper not automatically found
+- **-w, --wait** wait and retry indefinitely when Semantic Scholar requests fail
 - **-g, --grobid** forces repopulation of Grobid files
 - **-r, --redo** deletes cache
 - **-n, --nime** uses NIME specific corrections
@@ -79,7 +80,9 @@ Depending on the arguments, the script may interactively prompt "Yes"/"No" quest
 
 **-c**: Citations associated with papers changes very frequently and this argument forces the script to bypass the citation info stored in the cache file and retrieve new ones from Semantic Scholar. The updated citation number is then stored in the cache.
 
-**-m**: When the script fails to automatically find a good candidate matching paper metadata in Semantic Scholar, the user will be prompted with the option to manually enter the Semantic Scholar paper ID. The script will no longer progress until the ID is provided (or press enter to skip). The paper ID is the long alphanumeric string at the end of a paper's URL in semantic scholar (for example the ID of [this paper](https://www.semanticscholar.org/paper/20-NIMEs%3A-Twenty-Years-of-New-Interfaces-for-Fasciani-Goode/05098b150d3458c3aa8dfaf6cfe4305b174b6edb) is `05098b150d3458c3aa8dfaf6cfe4305b174b6edb` )
+**-m**: When the script fails to automatically find a good candidate matching paper metadata in Semantic Scholar, with this argument the user will be prompted with the option to manually enter the Semantic Scholar paper ID. The script will no longer progress until the ID is provided (or press enter to skip). The paper ID is the long alphanumeric string at the end of a paper's URL in semantic scholar (for example the ID of [this paper](https://www.semanticscholar.org/paper/20-NIMEs%3A-Twenty-Years-of-New-Interfaces-for-Fasciani-Goode/05098b150d3458c3aa8dfaf6cfe4305b174b6edb) is `05098b150d3458c3aa8dfaf6cfe4305b174b6edb` )
+
+**-w**: When a request to Semantic Scholar fails, this argument forces a wait - according to the sleep time - and indefinite retries until success.
 
 **-g**: This argument forces the script to regenerate the xml files associated with the papers using Grobid. This may be suitable when a new version of Grobid is released. The script downloads and uses the latest release of Grobid. You can check the used version from the associated cache folder.
 

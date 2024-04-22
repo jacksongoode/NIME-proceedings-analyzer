@@ -66,7 +66,14 @@ def get_args():
         "--manual",
         action="store_true",
         default=False,
-        help="Ask Semantic Scholar ID when paper not automatically found",
+        help="Ask user for Semantic Scholar ID when paper not automatically found",
+    )
+    parser.add_argument(
+        "-w",
+        "--wait",
+        action="store_true",
+        default=False,
+        help="wait and retry indefinitely when Semantic Scholar requests fail",
     )
     parser.add_argument(
         "-g",
