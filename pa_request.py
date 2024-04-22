@@ -106,25 +106,34 @@ def request_scholar(pub, args):
         ):  # title is too short, this return other paper, trying to filter it out by forcing full author name
             author_last_list[0] = "GarthPaine"
 
-    pub["scholar query"] = "N/A"
-    pub["scholar citation count"] = "N/A"
-    pub["scholar influential citation count"] = "N/A"
-    pub["scholar reference count"] = "N/A"
-    pub["scholar paper id"] = "N/A"
-    pub["scholar title"] = "N/A"
-    pub["scholar authors id"] = ["N/A"] * len(pub["author names"])
-    pub["scholar embedding"] = {}
-    pub["scholar tldr"] = {}
-    pub["scholar field of study"] = []
-    pub["scholar publication venue"] = {}
-    pub["scholar publication type"] = []
-    pub["scholar references"] = []
-    pub["scholar citations"] = []
-    pub["scholar references"] = []
+    for f, v in [
+        (
+            [
+                "field of study",
+                "publication venue",
+                "publication type",
+                "references",
+                "citations",
+            ],
+            [],
+        ),
+        (
+            [
+                "query",
+                "citation count",
+                "influential citation count",
+                "reference count",
+                "paper id",
+                "title",
+            ],
+            "N/A",
+        ),
+        (["embedding", "tldr"], {}),
+    ]:
+        for suffix in f:
+            pub[f"scholar {suffix}"] = v
+
     pub["scholar valid"] = False
-    pub["scholar field of study"] = []
-    pub["scholar publication venue"] = []
-    pub["scholar publication type"] = []
 
     # Make query title, name and year lists
     query_title = list(
