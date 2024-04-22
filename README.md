@@ -14,7 +14,6 @@ The tool is includes four scripts:
 
 5. [analysis_citations.py](analysis_citations.py) - Analyzes the references and citation data stored in _./output/export.csv_. and produces a pair of .txt and .xlsx files in _./output/_ with statistics related to papers citing and cited in NIME.
 
-
 ## Description & Usage
 
 ### Requirements
@@ -84,7 +83,7 @@ Depending on the arguments, the script may interactively prompt "Yes"/"No" quest
 
 **-n**: This argument enables a few manual corrections of author names and gender specific to NIME authors. Despite an effort to make the tool as generic and robust as possible, there are still a few exceptions, often due to inconsistent recording of data. Their handling is managed by the portions of the script which are executed only if this argument is passed to the script.
 
-**-p**: This argument enables to use PDF instead of XML for papers published in PubPub. Analyzing PDF may be preferred as PubPub keeps changing frequently and this tool is not updated at the same rate. However, automatic download of PDF papers from PubPub is not possible. If selecting this option the collection of 2021 and 2022 PubPub papers must be manually downloaded, renamed with the associated ID found in the [NIME BibTex File](http://nime-conference.github.io/NIME-bibliography/nime_papers.bib) (e.g. NIME22_16.pdf) and placed in the folder _./resources/pubpub/_ . Alternatively the same collection of PubPub PDF files (with proper renaming and correction of malformed files) can be downloaded [here](https://drive.google.com/uc?export=download&id=1i2ulr9XmHm3hlHuXCEPOFQf2JfLMXodg).
+**-p**: This argument enables to use PDF instead of XML for papers published in PubPub. Analyzing PDF may be preferred as PubPub keeps changing frequently and this tool is not updated at the same rate. However, automatic download of PDF papers from PubPub is not possible. If selecting this option the collection of 2021 and 2022 PubPub papers must be manually downloaded, renamed with the associated ID found in the [NIME BibTex File](http://nime-conference.github.io/NIME-bibliography/nime_papers.bib) (e.g. NIME22*16.pdf) and placed in the folder *./resources/pubpub/\_ . Alternatively the same collection of PubPub PDF files (with proper renaming and correction of malformed files) can be downloaded [here](https://drive.google.com/uc?export=download&id=1i2ulr9XmHm3hlHuXCEPOFQf2JfLMXodg).
 
 **-ock OCKEY**: This argument allows to specify an [OpenCage Geocoding API Key](https://opencagedata.com/api) which is necessary to request location-related data. A free key allows only 2500 requests per day.
 
@@ -93,7 +92,6 @@ This argument allows to specify a [Semantic Scholar API Key](https://www.semanti
 **-ssk SSKEY**: This argument allows to specify a [Semantic Scholar API Key](https://www.semanticscholar.org/product/api#api-key) to request citations and list of reference data at faster rate (default is 5000 requests per 5 minutes).
 
 **-s SLEEP**: This argument allows to specify a custom sleep time (in seconds) between consecutive Semantic Scholar API request, which is needed when using a Semantic Scholar API Key allowing a higher request-rate (default sleep is 0.06 sec).
-
 
 ### analysis_meta.py
 
@@ -215,7 +213,7 @@ The script produces the following output files:
 
 Through this file, located in the _./resources/_ folder, it is possible to customize the metadata and topic analysis. The following entries are allowed:
 
-- **years**: restrict the analysis to specific years (single cell), or to a a specific range (two adjacent cells). This entry can be repeated across multiple rows for incongruent years. This works with _analysis_meta.py_, _analysis_topic.py_, analysis_refcit.py, and _analysis_search.py_.
+- **years**: restrict the analysis to specific years (single cell), or to a a specific range (two adjacent cells). This entry can be repeated across multiple rows for incongruent years. This works with _analysis_meta.py_, _analysis_topic.py_, _analysis_refcit.py_, and _analysis_search.py_.
 
 - **keywords**: specify words (one in each cell) that can be queried for occurrence frequency using _analysis_search.py_.
 
@@ -268,7 +266,6 @@ The extracted data related to references and citations from 2001 to 2023 is pres
 S. Fasciani [Bibliometric Analysis of NIME References and Citations](http://nime.org/proceedings/2023/nime2024_15.pdf), in proceedings of 2024 International Conference on New Interfaces for Musical Expression, Utrecht, Netherlands, 2024.
 
 The data presented in the paper has been manually polished and arranged in a [spreadsheet](https://docs.google.com/spreadsheets/d/1swmSw3Uwja9N64t-qgkzpupaTqIZyD4bjftbgPMzmLk/edit?usp=drive_link), which includes a collection of plots and data visualizations.
-
 
 ```text
 @article{nime2024_15,
