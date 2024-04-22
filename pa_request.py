@@ -161,8 +161,11 @@ def request_scholar(pub, args):
     if full_query not in scholar_cache:
         pa_print.tprint(f"\nQuerying Semantic Scholar...")
         last_iter = False
+        force = False
         lookup_result = {}
         queries = list(itertools.product(query_title, query_name, query_year))
+        if args.manual:
+            queries.append(queries[0])
         num_of_queries = len(queries)
 
         for idx, temp in enumerate(queries):
@@ -174,6 +177,20 @@ def request_scholar(pub, args):
             # Generate new query from combination
             temp_title, temp_author, temp_year = temp[0], temp[1], temp[2]
             scholar_query = f"{temp_title} {temp_author} {temp_year}"
+
+            # Ask paper ID manually and retrieve title-author for search
+            if args.manual and last_iter:
+                manual_id = input("Type the Semantic Scholar ID manually and press Enter, or press Enter to skip ")
+
+                if len(manual_id)>0:
+                    lookup_result = scholar_api_paper_lookup(
+                        manual_id, sskey, args.sleep
+                    )
+                    
+                    if "message" not in lookup_result or "error" not in lookup_result:
+                        temp_title, temp_author = lookup_result["title"], lookup_result["authors"][0]["name"]
+                        scholar_query = f"{temp_title} {temp_author}"
+                        force = True
 
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
@@ -193,9 +210,9 @@ def request_scholar(pub, args):
                 and "data" in query_result
                 and len(query_result["data"]) > 0
             ):
-                if ("citationCount" in query_result["data"][0] or last_iter) and len(
+                if ("citationCount" in query_result["data"][0] or last_iter) and (len(
                     query_result["data"][0]["authors"]
-                ) <= (len(author_last_list) + 1):
+                ) <= (len(author_last_list) + 1) or force):
                     result_author = " ".join(
                         [t["name"] for t in query_result["data"][0]["authors"]]
                     )
@@ -206,7 +223,12 @@ def request_scholar(pub, args):
                         "", author_last_list[0].lower().split(" ")[-1]
                     )
 
-                    if result_author.find(query_author) != -1:
+                    if force:
+                        if query_result["data"][0]["paperId"] != manual_id:
+                            pa_print.tprint("Paper ID mismatch, provided vs retrieved:",manual_id,query_result["data"][0]["paperId"]) # if this ever gets printed, improve the code
+                            break
+
+                    if (result_author.find(query_author) != -1 or force):
                         # if paper never cited, creating citation fields and setting to 0
                         if "citationCount" not in query_result["data"][0]:
                             query_result["data"][0]["citationCount"] = 0
@@ -240,6 +262,7 @@ def request_scholar(pub, args):
                         )
 
                         break
+
 
         if pub["scholar citation count"] == "N/A":
             pa_print.tprint("x - Cannot find paper in Semantic Scholar")

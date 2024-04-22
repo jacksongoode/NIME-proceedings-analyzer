@@ -62,6 +62,13 @@ def get_args():
         help="Bypass cache to retrieve new citations",
     )
     parser.add_argument(
+        "-m",
+        "--manual",
+        action="store_true",
+        default=False,
+        help="Ask Semantic Scholar ID when paper not automatically found",
+    )
+    parser.add_argument(
         "-g",
         "--grobid",
         action="store_true",
