@@ -59,8 +59,23 @@ def scholar_api_paper_search(query, key, sleep, wait):
             time.sleep(sleep)
     return query_result
 
+def scholar_api_paper_manual_lookup(paper_id, key, sleep, wait):
+    api = "https://api.semanticscholar.org/graph/v1/paper/"
+    fields = "?fields=authors,title,year,citationCount,influentialCitationCount"
 
-def scholar_api_paper_lookup(paper_id, key, sleep, wait):
+    query_result = {'message': 'init'}
+    while ("message" in query_result.keys() and wait):
+        if key != "":
+            api_key = "&x-api-key=" + key
+            query_result = requests.get(api + paper_id + fields + api_key).json()
+            time.sleep(sleep)
+        else:
+            query_result = requests.get(api + paper_id + fields).json()
+            time.sleep(sleep)
+    return query_result
+
+
+def scholar_api_paper_citref_lookup(paper_id, key, sleep, wait):
     api = "https://api.semanticscholar.org/graph/v1/paper/"
     cit = "citations.authors,citations.title,citations.year,citations.s2FieldsOfStudy,citations.publicationTypes,citations.journal,citations.publicationVenue"
     ref = "references.authors,references.title,references.year,references.s2FieldsOfStudy,references.publicationTypes,references.journal,references.publicationVenue"
@@ -186,35 +201,27 @@ def request_scholar(pub, args):
 
             # Ask paper ID manually and retrieve title-author for search
             if args.manual and last_iter:
-                manual_id = input("Type the Semantic Scholar ID manually and press Enter, or press Enter to skip ")
+                manual_id = input("Type the Semantic Scholar search string manually and press Enter, or press Enter to skip ")
 
                 if len(manual_id)>0:
-                    lookup_result = scholar_api_paper_lookup(
+                    lookup_result = scholar_api_paper_manual_lookup(
                         manual_id, sskey, args.sleep, args.wait
                     )
-                    
-                    if "message" not in lookup_result and "error" not in lookup_result:
-                        temp_title, temp_author = lookup_result["title"], lookup_result["authors"][0]["name"]
-                        scholar_query = f"{temp_title}"
-                        force = True
-                    elif "message" in lookup_result:
+                    if "message" in lookup_result:
                         pa_print.tprint(f"Lookup returned message: {lookup_result}")
+                    else:
+                        query_result = {"data": [lookup_result]}
+            
+            else:
+                # Try query
+                pa_print.tprint(f"Trying query: '{scholar_query}'")
 
-            # Try query
-            pa_print.tprint(f"Trying query: '{scholar_query}'")
-
-            try:
                 query_result = scholar_api_paper_search(
                     scholar_query, sskey, args.sleep, args.wait
                 )
-            except Exception as e:
-                query_result = {"results": {}}
-                err_info = "x - While querying Semantic Scholar an exception of type {0} occurred.\nArguments:\n{1!r}."
-                err_msg = err_info.format(type(e).__name__, e.args)
-                pa_print.tprint(err_msg)
 
-            if "message" in query_result:
-                pa_print.tprint(f"Search returned message: {query_result}")
+                if "message" in query_result:
+                    pa_print.tprint(f"Search returned message: {query_result}")
 
             if (
                 not "message" in query_result.keys()
@@ -238,11 +245,12 @@ def request_scholar(pub, args):
                     if force:
                         if query_result["data"][0]["paperId"] != manual_id:
                             try:
-                                temp = query_result["data"][0]["paperId"]
-                                pa_print.tprint(f"Paper ID mismatch, provided:{lookup_result} vs retrieved:{temp}") # if this ever gets printed, improve the code
+                                temp1 = query_result["data"][0]["paperId"]
+                                temp2 = query_result["data"][0]["paperId"]
+                                pa_print.tprint(f"Paper ID mismatch, provided:{lookup_result} vs retrieved:{temp}") # if this ever gets printed, improve the algorithm
                             except:
                                 pass
-                            
+
                             break
 
                     if (result_author.find(query_author) != -1 or force):
@@ -266,7 +274,7 @@ def request_scholar(pub, args):
 
                         if pub["scholar paper id"] not in scholar_cache:
                             pa_print.tprint(f"\nSemantic Scholar paper lookup...")
-                            lookup_result = scholar_api_paper_lookup(
+                            lookup_result = scholar_api_paper_citref_lookup(
                                 pub["scholar paper id"], sskey, args.sleep, args.wait
                             )
                             if "message" not in lookup_result:
@@ -304,7 +312,7 @@ def request_scholar(pub, args):
 
             if pub["scholar paper id"] not in scholar_cache:
                 pa_print.tprint(f"\nSemantic Scholar paper lookup...")
-                lookup_result = scholar_api_paper_lookup(
+                lookup_result = scholar_api_paper_citref_lookup(
                     pub["scholar paper id"], sskey, args.sleep, args.wait
                 )
                 scholar_cache[pub["scholar paper id"]] = lookup_result
