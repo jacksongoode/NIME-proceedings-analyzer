@@ -1062,6 +1062,13 @@ if __name__ == "__main__":
         description="Analyze the metadata stored in the output/export.csv"
     )
     parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="prints out analysis stages results",
+    )
+    parser.add_argument(
         "-n",
         "--nime",
         action="store_true",
@@ -1069,12 +1076,13 @@ if __name__ == "__main__":
         help="uses NIME based corrections",
     )
     parser.add_argument(
-        "-v",
-        "--verbose",
+        "-c",
+        "--clear",
         action="store_true",
         default=False,
-        help="prints out analysis stages results",
+        help="clear caches before executing",
     )
+
     args = parser.parse_args()
 
     # Sets global print command
@@ -1086,8 +1094,20 @@ if __name__ == "__main__":
     os.makedirs("./output", exist_ok=True)
 
     # Load databases
+
+    if args.clear:
+        if os.path.exists("./cache/df/cit_df.obj"):
+            os.remove("./cache/df/cit_df.obj")
+        if os.path.exists("./cache/df/ref_df.obj"):
+            os.remove("./cache/df/ref_df.obj")
+        if os.path.exists("./cache/df/auth_df.obj"):
+            os.remove("./cache/df/auth_df.obj")
+        if os.path.exists("./cache/df/cleaned_bib_df.obj"):
+            os.remove("./cache/df/cleaned_bib_df.obj")
+
     user_config = import_config("./resources/custom.csv")
     conf_df = load_conf_csv("./resources/conferences.csv")
+    print("DEBUG", user_config[3])
     bib_df = load_bib_csv("./output/export.csv", user_config[3])
     cit_df, ref_df, auth_df = generate_cit_ref_auth_df(bib_df)
 

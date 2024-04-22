@@ -187,10 +187,13 @@ The script accepts the following optional arguments:
 - **-h, --help** show this help message and exit
 - **-v, --verbose** prints out operations
 - **-n, --nime** uses NIME based corrections
+- **-n, --nime** clear cache before executing
 
 **-v**: This argument prints details of the script's progress.
 
 **-n**: This argument forces a few correction on author names and gender specific to NIME authors. In the current version this argument has no effect.
+
+**-c**: This argument forces the deletion of the cached files computed from _./output/export.csv_ from previous execution, and it should be used in case of re-running the script _pa.py_.
 
 The analysis can be restricted to specific years through the [custom.csv](#custom.csv) file in the _./resources/_ folder.
 
