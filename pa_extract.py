@@ -28,6 +28,7 @@ import re
 
 import fasttext
 fasttext.FastText.eprint = lambda x: None  # do not display warning message
+
 import gender_guesser.detector as gender  # https://github.com/lead-ratings/gender-guesser
 import onomancer as ono  # https://github.com/parthmaul/onomancer
 import pikepdf
@@ -45,6 +46,7 @@ from unidecode import unidecode
 
 import pa_print
 from pa_load import check_xml
+
 
 # Variables
 pdf_src = os.getcwd() + "/cache/pdf/"
