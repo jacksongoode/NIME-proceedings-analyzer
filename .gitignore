@@ -13,7 +13,9 @@ geckodriver.log
 /resources/corrected/
 /resources/pubpub/
 /resources/Pub2TEI/
+/resources/exclude_pdfs.txt
 /nime/
 /cache/
 /output/
 /ignore/
+.env

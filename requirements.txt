@@ -3,7 +3,8 @@ bibtexparser
 gender-guesser
 gensim
 geopy
-https://github.com/kermitt2/grobid_client_python/archive/refs/heads/master.zip
+git+https://github.com/cfculhane/fastText
+git+https://github.com/kermitt2/grobid_client_python
 lxml
 nltk
 numpy
@@ -16,10 +17,13 @@ pandas
 pdfminer.six
 pikepdf
 pyLDAvis
+python-dotenv
 python-Levenshtein
+pytz
 regex
 requests
+scikit-learn
+scipy==1.10.1
 tqdm
 Unidecode
 wordcloud
-scikit-learn
