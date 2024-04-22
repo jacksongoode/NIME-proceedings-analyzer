@@ -1,6 +1,6 @@
 # [NIME](https://www.nime.org/) Proceedings Analyzer
 
-The NIME Proceedings Analyzer (PA) is a tool written in python to perform a bibliometric analysis of the New Interfaces for Musical Expression (NIME) proceedings archive.
+The NIME Proceedings Analyzer (PA) is a tool written in Python to perform a bibliometric analysis of the New Interfaces for Musical Expression (NIME) proceedings archive.
 
 The tool is includes four scripts:
 
