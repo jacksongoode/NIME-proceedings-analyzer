@@ -21,14 +21,16 @@
 # Archive, in 2022 International Conference on New Interfaces for
 # Musical Expression, Auckland, New Zealand, 2022.
 
-from tqdm import tqdm
 import logging
 
-notice = '\nNIME Proceedings Analyzer\n\
+from tqdm import tqdm
+
+notice = "\nNIME Proceedings Analyzer\n\
 Copyright (C) 2024 Jackson Goode, Stefano Fasciani\n\
 This program comes with ABSOLUTELY NO WARRANTY;\n\
 This is free software, and you are welcome to redistribute it\n\
-under certain conditions; for details check the LICENSE file.\n'
+under certain conditions; for details check the LICENSE file.\n"
+
 
 # Allows a verbose toggle to switch on/off prints to console
 def init(args):
@@ -36,11 +38,11 @@ def init(args):
     global nprint
     global lprint
 
-    logging.basicConfig(filename='./lastrun.log', level=logging.INFO)
+    logging.basicConfig(filename="./lastrun.log", level=logging.INFO)
 
     def tqdm_out(msg):
         # Remove formatting of display
-        logging.info(' '.join(msg.strip().splitlines()))
+        logging.info(" ".join(msg.strip().splitlines()))
 
         if args.verbose:
             tqdm.write(msg)
