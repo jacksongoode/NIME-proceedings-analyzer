@@ -198,7 +198,7 @@ def request_scholar(pub, args):
                         scholar_query = f"{temp_title}"
                         force = True
                     elif "message" in lookup_result:
-                        pa_print.tprint(f"Lookup returned: '{lookup_result}'")
+                        pa_print.tprint(f"Lookup returned message: {lookup_result}")
 
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
@@ -214,7 +214,7 @@ def request_scholar(pub, args):
                 pa_print.tprint(err_msg)
 
             if "message" in query_result:
-                pa_print.tprint(f"Search returned: '{query_result}'")
+                pa_print.tprint(f"Search returned message: {query_result}")
 
             if (
                 not "message" in query_result.keys()
@@ -237,7 +237,12 @@ def request_scholar(pub, args):
 
                     if force:
                         if query_result["data"][0]["paperId"] != manual_id:
-                            pa_print.tprint("Paper ID mismatch, provided vs retrieved:",manual_id,query_result["data"][0]["paperId"]) # if this ever gets printed, improve the code
+                            try:
+                                temp = query_result["data"][0]["paperId"]
+                                pa_print.tprint(f"Paper ID mismatch, provided:{lookup_result} vs retrieved:{temp}") # if this ever gets printed, improve the code
+                            except:
+                                pass
+                            
                             break
 
                     if (result_author.find(query_author) != -1 or force):
