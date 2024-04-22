@@ -40,8 +40,6 @@ Note: location-based analyses uses data from [OpenCage Data](https://opencagedat
 
 Note: bibliometric-based analyses uses data from [Semantic Scholar](https://www.semanticscholar.org/) for which you may provide an API key to access the service at a faster rate.
 
-Note: For Macbooks based on arm, a the library located at `/NIME-proceedings-analyzer/cache/grobid-{version}/grobid-home/lib/mac-64/libwapiti.dylib` may not work properly with the device. In this case, a pre-built lib has been made available within `resources/misc/libwapiti.dylib`. This can be overwrite the installed lib if needed.
-
 ## pa.py
 
 This script produces a database which includes an entry for each published NIME paper. For each paper the database includes:

@@ -46,8 +46,6 @@ from unidecode import unidecode
 import pa_print
 from pa_load import check_xml
 
-
-
 # Variables
 pdf_src = os.getcwd() + "/cache/pdf/"
 xml_src = os.getcwd() + "/cache/xml/"
