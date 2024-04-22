@@ -187,7 +187,7 @@ def request_scholar(pub, args):
                         manual_id, sskey, args.sleep
                     )
                     
-                    if "message" not in lookup_result or "error" not in lookup_result:
+                    if "message" not in lookup_result and "error" not in lookup_result:
                         temp_title, temp_author = lookup_result["title"], lookup_result["authors"][0]["name"]
                         scholar_query = f"{temp_title} {temp_author}"
                         force = True
