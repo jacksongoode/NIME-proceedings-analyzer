@@ -18,7 +18,7 @@ The tool is includes four scripts:
 
 ### Requirements
 
-The NIME PA requires Python 3.11, Java JDK 1.11 and an active Internet connection.
+The NIME PA requires Python 3.11, Java JDK 11 and an active Internet connection.
 
 Install required packages:
 
@@ -83,7 +83,7 @@ Depending on the arguments, the script may interactively prompt "Yes"/"No" quest
 
 **-n**: This argument enables a few manual corrections of author names and gender specific to NIME authors. Despite an effort to make the tool as generic and robust as possible, there are still a few exceptions, often due to inconsistent recording of data. Their handling is managed by the portions of the script which are executed only if this argument is passed to the script.
 
-**-p**: This argument enables to use PDF instead of XML for papers published in PubPub. Analyzing PDF may be preferred as PubPub keeps changing frequently and this tool is not updated at the same rate. However, automatic download of PDF papers from PubPub is not possible. If selecting this option the collection of 2021 and 2022 PubPub papers must be manually downloaded, renamed with the associated ID found in the [NIME BibTex File](http://nime-conference.github.io/NIME-bibliography/nime_papers.bib) (e.g. NIME22*16.pdf) and placed in the folder *./resources/pubpub/\_ . Alternatively the same collection of PubPub PDF files (with proper renaming and correction of malformed files) can be downloaded [here](https://drive.google.com/uc?export=download&id=1i2ulr9XmHm3hlHuXCEPOFQf2JfLMXodg).
+**-p**: This argument enables to use PDF instead of XML for papers published in PubPub. Analyzing PDF may be preferred as PubPub keeps changing frequently and this tool is not updated at the same rate. However, automatic download of PDF papers from PubPub is not possible. If selecting this option the collection of 2021 and 2022 PubPub papers must be manually downloaded, renamed with the associated ID found in the [NIME BibTex File](http://nime-conference.github.io/NIME-bibliography/nime_papers.bib) (e.g. NIME22_16.pdf) and placed in the folder *./resources/pubpub/*. Alternatively the same collection of PubPub PDF files (with proper renaming and correction of malformed files) can be downloaded [here](https://drive.google.com/uc?export=download&id=1i2ulr9XmHm3hlHuXCEPOFQf2JfLMXodg).
 
 **-ock OCKEY**: This argument allows to specify an [OpenCage Geocoding API Key](https://opencagedata.com/api) which is necessary to request location-related data. A free key allows only 2500 requests per day.
 
