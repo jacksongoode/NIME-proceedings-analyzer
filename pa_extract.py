@@ -21,11 +21,13 @@
 # Archive, in 2022 International Conference on New Interfaces for
 # Musical Expression, Auckland, New Zealand, 2022.
 
+
 import datetime
 import os
 import re
 
 import fasttext
+fasttext.FastText.eprint = lambda x: None  # do not display warning message
 import gender_guesser.detector as gender  # https://github.com/lead-ratings/gender-guesser
 import onomancer as ono  # https://github.com/parthmaul/onomancer
 import pikepdf
@@ -44,7 +46,7 @@ from unidecode import unidecode
 import pa_print
 from pa_load import check_xml
 
-fasttext.FastText.eprint = lambda x: None  # do not display warning message
+
 
 # Variables
 pdf_src = os.getcwd() + "/cache/pdf/"
