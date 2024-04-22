@@ -68,6 +68,9 @@ The script accepts the following optional arguments:
 - **-ssk SSKEY, --sskey SSKEY** Semantic Scholar API key
 - **-s SLEEP, --sleep SLEEP** sleep time (sec) between Semantic Scholar API requests
 
+**Note:** The OpenCage and Semantic Scholar keys can be kept in a `.env` file in the root of the project.
+In this file you can add `SSKEY=abc123...` and `OCKEY=abc123...` as line separated values instead of passing as arguments.
+
 The first execution of the script will take a significant amount of time, approximately 12 hours.
 The most time consuming operations are: downloading of PDF files associated with the papers, generating xml files associated with the papers and stored in _./cache/xml/_ through Grobid, and querying Semantic Scholar (due to their public API limit).
 
