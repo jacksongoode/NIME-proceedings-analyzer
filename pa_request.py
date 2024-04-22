@@ -155,6 +155,9 @@ def request_scholar(pub, args):
     full_query = f"{title} {' '.join(author_last_list)} {pub['year']}"
     pub["scholar query"] = full_query
 
+    # Set key either through arg or .env
+    sskey = args.sskey or os.getenv("SSKEY") or ""
+
     if full_query not in scholar_cache:
         pa_print.tprint(f"\nQuerying Semantic Scholar...")
         last_iter = False
@@ -174,9 +177,6 @@ def request_scholar(pub, args):
 
             # Try query
             pa_print.tprint(f"Trying query: '{scholar_query}'")
-
-            # Set key either through arg or .env
-            sskey = args.sskey or os.getenv("SSKEY") or ""
 
             try:
                 query_result = scholar_api_paper_search(
