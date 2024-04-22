@@ -52,38 +52,42 @@ def get_args():
         "--verbose",
         action="store_true",
         default=False,
-        help="prints out operations",
+        help="Prints out operations",
     )
     parser.add_argument(
         "-c",
         "--citations",
         action="store_true",
         default=False,
-        help="bypass cache to retrieve new citations",
+        help="Bypass cache to retrieve new citations",
     )
     parser.add_argument(
         "-g",
         "--grobid",
         action="store_true",
         default=False,
-        help="forces repopulation of Grobid files",
+        help="Forces repopulation of Grobid files",
     )
     parser.add_argument(
-        "-r", "--redo", action="store_true", default=False, help="deletes cache"
+        "-r",
+        "--redo",
+        action="store_true",
+        default=False,
+        help="Clear cache completely",
     )
     parser.add_argument(
         "-n",
         "--nime",
         action="store_true",
         default=False,
-        help="uses NIME based corrections",
+        help="Uses NIME based corrections",
     )
     parser.add_argument(
         "-p",
         "--pdf",
         action="store_true",
         default=False,
-        help="use manually downloaded pdf for PubPub publications",
+        help="Use manually downloaded pdf for PubPub publications",
     )
     parser.add_argument(
         "-ock", "--ockey", type=str, default="", help="OpenCage Geocoding API key"
@@ -96,7 +100,7 @@ def get_args():
         "--sleep",
         type=float,
         default=3,
-        help="sleep time (sec) between Semantic Scholar API calls",
+        help="Sleep time (sec) between Semantic Scholar API calls",
     )
 
     return parser.parse_args()
