@@ -1107,7 +1107,6 @@ if __name__ == "__main__":
 
     user_config = import_config("./resources/custom.csv")
     conf_df = load_conf_csv("./resources/conferences.csv")
-    print("DEBUG", user_config[3])
     bib_df = load_bib_csv("./output/export.csv", user_config[3])
     cit_df, ref_df, auth_df = generate_cit_ref_auth_df(bib_df)
 
