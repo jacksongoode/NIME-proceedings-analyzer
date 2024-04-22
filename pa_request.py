@@ -211,6 +211,7 @@ def request_scholar(pub, args):
                         pa_print.tprint(f"Lookup returned message: {lookup_result}")
                     else:
                         query_result = {"data": [lookup_result]}
+                        force = True
             
             else:
                 # Try query
@@ -245,9 +246,9 @@ def request_scholar(pub, args):
                     if force:
                         if query_result["data"][0]["paperId"] != manual_id:
                             try:
-                                temp1 = query_result["data"][0]["paperId"]
+                                temp1 = manual_id
                                 temp2 = query_result["data"][0]["paperId"]
-                                pa_print.tprint(f"Paper ID mismatch, provided:{lookup_result} vs retrieved:{temp}") # if this ever gets printed, improve the algorithm
+                                pa_print.tprint(f"Paper ID mismatch, provided:{temp1} vs retrieved:{temp2}") # if this ever gets printed, improve the algorithm
                             except:
                                 pass
 
