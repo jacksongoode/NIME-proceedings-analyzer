@@ -209,7 +209,7 @@ def request_scholar(pub, args):
                     )
                     if "message" in lookup_result:
                         temp =  query_result["message"]
-                        pa_print.tprint(f"Lookup returned message: {temp}")
+                        pa_print.tprint(f"Semantic Scholar lookup returned message: {temp}")
                     else:
                         query_result = {"data": [lookup_result]}
                         force = True
@@ -224,7 +224,7 @@ def request_scholar(pub, args):
 
                 if "message" in query_result:
                     temp =  query_result["message"]
-                    pa_print.tprint(f"Search returned message: {temp}")
+                    pa_print.tprint(f"Semantic Scholar search returned message: {temp}")
 
             if (
                 not "message" in query_result.keys()
@@ -291,13 +291,9 @@ def request_scholar(pub, args):
 
                         break
 
-
         if pub["scholar citation count"] == "N/A":
             pa_print.tprint("x - Cannot find paper in Semantic Scholar")
             # scholar_cache[full_query] = 'N/A'
-
-        with open("./cache/json/scholar_cache.json", "wb") as fp:
-            fp.write(orjson.dumps(scholar_cache))
 
     else:
         if scholar_cache[full_query] != "N/A":
@@ -374,6 +370,9 @@ def request_scholar(pub, args):
         )
     else:
         pub["scholar yearly citations"] = "N/A"
+
+    with open("./cache/json/scholar_cache.json", "wb") as fp:
+        fp.write(orjson.dumps(scholar_cache))
 
 
 def request_location(author_info, args, pub):
