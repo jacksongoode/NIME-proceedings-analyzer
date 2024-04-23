@@ -208,7 +208,8 @@ def request_scholar(pub, args):
                         manual_id, sskey, args.sleep, args.wait
                     )
                     if "message" in lookup_result:
-                        pa_print.tprint(f"Lookup returned message: {lookup_result}")
+                        temp =  query_result["message"]
+                        pa_print.tprint(f"Lookup returned message: {temp}")
                     else:
                         query_result = {"data": [lookup_result]}
                         force = True
@@ -222,7 +223,8 @@ def request_scholar(pub, args):
                 )
 
                 if "message" in query_result:
-                    pa_print.tprint(f"Search returned message: {query_result}")
+                    temp =  query_result["message"]
+                    pa_print.tprint(f"Search returned message: {temp}")
 
             if (
                 not "message" in query_result.keys()
