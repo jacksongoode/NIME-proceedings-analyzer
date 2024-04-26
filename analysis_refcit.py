@@ -92,6 +92,13 @@ def load_bib_csv(filepath, selectedyears):
         "continents": generic,
         "institutions": generic,
         "scholar authors id": generic,
+        "scholar citations": generic,
+        "scholar embedding": generic,
+        "scholar field of study": generic,
+        "scholar publication type": generic,
+        "scholar publication venue": generic,
+        "scholar references": generic,
+        "scholar tldr": generic
     }
 
     try:  # accommodate regional delimiters
@@ -113,37 +120,17 @@ def load_bib_csv(filepath, selectedyears):
         pd.to_numeric(distances, errors="coerce")
         for distances in bib_df["author distances"]
     ]
-
-    # Convert dicts imported as string by pandas read_csv
-    bib_df["scholar embedding"] = [
-        ast.literal_eval(embedding) if is_not_nan(embedding) else dict()
-        for embedding in bib_df["scholar embedding"]
+    bib_df["scholar citation count"] = [
+        pd.to_numeric(distances, errors="coerce")
+        for distances in bib_df["scholar citation count"]
     ]
-    bib_df["scholar tldr"] = [
-        ast.literal_eval(tldr) if is_not_nan(tldr) else dict()
-        for tldr in bib_df["scholar tldr"]
+    bib_df["scholar influential citation count"] = [
+        pd.to_numeric(distances, errors="coerce")
+        for distances in bib_df["scholar influential citation count"]
     ]
-
-    # Convert lists of dicts imported as string by pandas read_csv
-    bib_df["scholar references"] = [
-        ast.literal_eval(references) if is_not_nan(references) else list()
-        for references in bib_df["scholar references"]
-    ]
-    bib_df["scholar citations"] = [
-        ast.literal_eval(citations) if is_not_nan(citations) else list()
-        for citations in bib_df["scholar citations"]
-    ]
-    bib_df["scholar field of study"] = [
-        ast.literal_eval(references) if is_not_nan(references) else list()
-        for references in bib_df["scholar field of study"]
-    ]
-    bib_df["scholar publication venue"] = [
-        ast.literal_eval(citations) if is_not_nan(citations) else list()
-        for citations in bib_df["scholar publication venue"]
-    ]
-    bib_df["scholar publication type"] = [
-        ast.literal_eval(citations) if is_not_nan(citations) else list()
-        for citations in bib_df["scholar publication type"]
+    bib_df["scholar reference count"] = [
+        pd.to_numeric(distances, errors="coerce")
+        for distances in bib_df["scholar reference count"]
     ]
 
     os.makedirs("./cache/df", exist_ok=True)
@@ -170,7 +157,10 @@ def generate_cit_ref_auth_df(bib_df):
     NIME_authors_id = bib_df["scholar authors id"].tolist()
     NIME_authors_id = list(chain.from_iterable(NIME_authors_id))
     NIME_authors_id = list(dict.fromkeys(NIME_authors_id))
-    NIME_authors_id.remove("N/A")
+    try:
+        NIME_authors_id.remove("N/A")
+    except:
+        pass
 
     cit_df = pd.DataFrame(
         columns=[
@@ -390,7 +380,10 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
     NIME_authors_id = bib_df["scholar authors id"].tolist()
     NIME_authors_id = list(chain.from_iterable(NIME_authors_id))
     NIME_authors_id = list(dict.fromkeys(NIME_authors_id))
-    NIME_authors_id.remove("N/A")
+    try:
+        NIME_authors_id.remove("N/A")
+    except:
+        pass
 
     outtxt += "\nTotal authors %d" % total_authors
     outtxt += "\nTotal unique authors %d" % unique_authors
@@ -504,7 +497,7 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
             papers_in_scholar
         )
 
-    temp = bib_df[bib_df["scholar valid"] is True]
+    temp = bib_df[bib_df["scholar valid"] == True]
     papers_by_references = (
         temp["scholar reference count"].value_counts(sort=False).sort_index()
     )

@@ -121,17 +121,11 @@ def request_scholar(pub, args):
 
     title = unidecode.unidecode(pub["title"])
 
-    if args.nime:
-        if (
-            title == "Now"
-        ):  # title is too short, this return other paper, trying to filter it out by forcing full author name
-            author_last_list[0] = "GarthPaine"
-
     for f, v in [
         (
             [
+                "authors id",
                 "field of study",
-                "publication venue",
                 "publication type",
                 "references",
                 "citations",
@@ -149,12 +143,28 @@ def request_scholar(pub, args):
             ],
             "N/A",
         ),
-        (["embedding", "tldr"], {}),
+        (
+            [
+                "publication venue",
+                "embedding",
+                "tldr",
+
+            ],
+            {}
+        ),
     ]:
         for suffix in f:
             pub[f"scholar {suffix}"] = v
 
     pub["scholar valid"] = False
+
+    skip = False
+    if args.nime:
+        # papers (mostly installations) with short titles returning wrong entries in Semantic Scholar, or with significantly wrong citation
+        to_skip = ["Stark2007", "Court2007", "Dubois2009", "Stanza2007", "Overholt2009", "Deutscher2005", "Biggs2007", "Sa2007", "Paine2016"]
+        if pub["ID"] in to_skip:
+            pa_print.tprint("Skipping papers due to reported wrong data in Semantic Scholar or ambiguous query")
+            skip = True
 
     # Make query title, name and year lists
     query_title = list(
@@ -190,6 +200,10 @@ def request_scholar(pub, args):
         num_of_queries = len(queries)
 
         for idx, temp in enumerate(queries):
+            
+            if args.nime:
+                if skip:
+                    break
 
             # Checking if last query
             if idx == (num_of_queries - 1):
@@ -296,13 +310,10 @@ def request_scholar(pub, args):
             # scholar_cache[full_query] = 'N/A'
 
     else:
-        if scholar_cache[full_query] != "N/A":
-            pub["scholar citation count"] = scholar_cache[full_query]["data"][0][
-                "citationCount"
-            ]
-            pub["scholar influential citation count"] = scholar_cache[full_query][
-                "data"
-            ][0]["influentialCitationCount"]
+        lookup_result = {}
+        if scholar_cache[full_query] != "N/A" and skip==False:
+            pub["scholar citation count"] = scholar_cache[full_query]["data"][0][ "citationCount"]
+            pub["scholar influential citation count"] = scholar_cache[full_query]["data"][0]["influentialCitationCount"]
             pub["scholar paper id"] = scholar_cache[full_query]["data"][0]["paperId"]
             pub["scholar title"] = scholar_cache[full_query]["data"][0]["title"]
             pub["scholar authors id"] = [
@@ -319,22 +330,14 @@ def request_scholar(pub, args):
                 lookup_result = scholar_cache[pub["scholar paper id"]]
 
             if "embedding" in scholar_cache[pub["scholar paper id"]]:
-                pub["scholar embedding"] = scholar_cache[pub["scholar paper id"]][
-                    "embedding"
-                ]
+                pub["scholar embedding"] = scholar_cache[pub["scholar paper id"]]["embedding"]
             if "tldr" in scholar_cache[pub["scholar paper id"]]:
                 pub["scholar tldr"] = scholar_cache[pub["scholar paper id"]]["tldr"]
             if "citations" in scholar_cache[pub["scholar paper id"]]:
-                pub["scholar citations"] = scholar_cache[pub["scholar paper id"]][
-                    "citations"
-                ]
+                pub["scholar citations"] = scholar_cache[pub["scholar paper id"]]["citations"]
             if "references" in scholar_cache[pub["scholar paper id"]]:
-                pub["scholar references"] = scholar_cache[pub["scholar paper id"]][
-                    "references"
-                ]
-                pub["scholar reference count"] = len(
-                    scholar_cache[pub["scholar paper id"]]["references"]
-                )
+                pub["scholar references"] = scholar_cache[pub["scholar paper id"]]["references"]
+                pub["scholar reference count"] = len(scholar_cache[pub["scholar paper id"]]["references"])
                 if pub["scholar reference count"] > 0:
                     pub["scholar valid"] = True
 
@@ -370,6 +373,24 @@ def request_scholar(pub, args):
         )
     else:
         pub["scholar yearly citations"] = "N/A"
+
+    # Resetting fields to defaults if null
+    if not pub["scholar authors id"]:
+        pub["scholar authors id"] = []
+    if not pub["scholar field of study"]:
+        pub["scholar field of study"] = []
+    if not pub["scholar publication type"]:
+        pub["scholar publication type"] = []
+    if not pub["scholar references"]:
+        pub["scholar references"] = []
+    if not pub["scholar citations"]:
+        pub["scholar citations"] =[]
+    if not pub["scholar publication venue"]:
+        pub["scholar publication venue"] ={}
+    if not pub["scholar embedding"]:
+        pub["scholar embedding"] ={}
+    if not pub["scholar tldr"]:
+        pub["scholar tldr"] ={}
 
     with open("./cache/json/scholar_cache.json", "wb") as fp:
         fp.write(orjson.dumps(scholar_cache))
