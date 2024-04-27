@@ -161,7 +161,7 @@ def request_scholar(pub, args):
     skip = False
     if args.nime:
         # papers (mostly installations) with short titles returning wrong entries in Semantic Scholar, or with significantly wrong citation
-        to_skip = ["Stark2007", "Court2007", "Dubois2009", "Stanza2007", "Overholt2009", "Deutscher2005", "Biggs2007", "Sa2007", "Paine2016"]
+        to_skip = ["Stark2007", "Court2007", "Dubois2009", "Stanza2007", "Overholt2009", "Deutscher2005", "Biggs2007", "Sa2007", "Wechsler2009", "Michon2013", "Paine2016"]
         if pub["ID"] in to_skip:
             pa_print.tprint("Skipping papers due to reported wrong data in Semantic Scholar or ambiguous query")
             skip = True
