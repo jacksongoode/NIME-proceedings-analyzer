@@ -26,6 +26,7 @@ import os
 import pickle
 import sys
 import warnings
+import datetime
 
 import numpy as np
 import pandas as pd
@@ -77,7 +78,8 @@ if __name__ == "__main__":
         year_range = list(map(int, selected_years))
         year_start, year_end = min(year_range), max(year_range) + 1
     else:
-        year_start, year_end = 2001, 2021
+        year_start  = 2001
+        year_end = datetime.date.today().year - 1
         year_range = range(year_start, year_end)
 
     print(f"Searching for {keywords} in years {year_range}")
