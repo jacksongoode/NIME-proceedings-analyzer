@@ -12,7 +12,7 @@ The tool is includes four scripts:
 
 4. [analysis_search.py](analysis_search.py) - Searches specific keywords through the papers and it produces a graph with the search terms over the years in a .xlsx file saved in _./output/_.
 
-5. [analysis_citations.py](analysis_citations.py) - Analyzes the references and citation data stored in _./output/export.csv_. and produces a pair of .txt and .xlsx files in _./output/_ with statistics related to papers citing and cited in NIME.
+5. [analysis_refcit.py](analysis_refcit.py) - Analyzes the references and citation data stored in _./output/export.csv_. and produces a pair of .txt and .xlsx files in _./output/_ with statistics related to papers citing and cited in NIME.
 
 ## Description & Usage
 
@@ -193,7 +193,7 @@ The script accepts the following optional arguments:
 - **-h, --help** show this help message and exit
 - **-v, --verbose** prints out operations
 - **-n, --nime** uses NIME based corrections
-- **-n, --nime** clear cache before executing
+- **-c, --clear** clear cache before executing
 
 **-v**: This argument prints details of the script's progress.
 
