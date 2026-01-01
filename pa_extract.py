@@ -41,7 +41,8 @@ from pdfminer.high_level import extract_text as extract_pdf
 from pdfminer.layout import LAParams
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfinterp import resolve1
-from pdfminer.pdfparser import PDFParser, PSSyntaxError
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfparser import PDFSyntaxError as PSSyntaxError
 from unidecode import unidecode
 
 import pa_print
