@@ -49,7 +49,7 @@ def scholar_api_paper_search(query, key, sleep, wait):
     fields = "&fields=authors,title,year,citationCount,influentialCitationCount"
 
     query_result = {'message': 'init'}
-    while ("message" in query_result.keys() and wait):
+    while ("message" in query_result.keys()):
         if key != "":
             api_key = "&x-api-key=" + key
             query_result = requests.get(api + query + fields + api_key).json()
@@ -57,6 +57,8 @@ def scholar_api_paper_search(query, key, sleep, wait):
         else:
             query_result = requests.get(api + query + fields).json()
             time.sleep(sleep)
+        if wait == False:
+            break
     return query_result
 
 def scholar_api_paper_manual_lookup(paper_id, key, sleep, wait):
@@ -64,7 +66,7 @@ def scholar_api_paper_manual_lookup(paper_id, key, sleep, wait):
     fields = "?fields=authors,title,year,citationCount,influentialCitationCount"
 
     query_result = {'message': 'init'}
-    while ("message" in query_result.keys() and wait):
+    while ("message" in query_result.keys()):
         if key != "":
             api_key = "&x-api-key=" + key
             query_result = requests.get(api + paper_id + fields + api_key).json()
@@ -72,6 +74,8 @@ def scholar_api_paper_manual_lookup(paper_id, key, sleep, wait):
         else:
             query_result = requests.get(api + paper_id + fields).json()
             time.sleep(sleep)
+        if wait == False:
+            break
     return query_result
 
 
@@ -87,7 +91,7 @@ def scholar_api_paper_citref_lookup(paper_id, key, sleep, wait):
     )
 
     query_result = {'message': 'init'}
-    while ("message" in query_result.keys() and wait):
+    while ("message" in query_result.keys()):
         if key != "":
             api_key = "&x-api-key=" + key
             query_result = requests.get(api + paper_id + fields + api_key).json()
@@ -95,6 +99,8 @@ def scholar_api_paper_citref_lookup(paper_id, key, sleep, wait):
         else:
             query_result = requests.get(api + paper_id + fields).json()
             time.sleep(sleep)
+        if wait == False:
+            break
     return query_result
 
 
