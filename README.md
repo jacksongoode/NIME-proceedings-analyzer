@@ -299,7 +299,7 @@ All code in this repository is licensed under [GNU GPL 3.0](https://www.gnu.org/
 
 ```text
 NIME Proceedings Analyzer (NIME PA)
-Copyright (C) 2024 Jackson Goode, Stefano Fasciani
+Copyright (C) 2026 Jackson Goode, Stefano Fasciani
 
 The NIME PA is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
