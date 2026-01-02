@@ -350,7 +350,6 @@ def request_scholar(pub, args):
         pa_print.tprint(
             f"\no - Retrieved from cache: {pub['scholar citation count']} citations"
         )
-
     if lookup_result:
         if "embedding" in lookup_result:
             pub["scholar embedding"] = lookup_result["embedding"]
@@ -365,8 +364,9 @@ def request_scholar(pub, args):
         if "citations" in lookup_result:
             pub["scholar citations"] = lookup_result["citations"]
         if "references" in lookup_result:
-            pub["scholar references"] = lookup_result["references"]
-            pub["scholar reference count"] = len(lookup_result["references"])
+            references = lookup_result["references"]
+            pub["scholar references"] = references
+            pub["scholar reference count"] = len(references) if references is not None else 0
             if pub["scholar reference count"] > 0:
                 pub["scholar valid"] = True
 
