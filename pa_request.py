@@ -342,8 +342,9 @@ def request_scholar(pub, args):
             if "citations" in scholar_cache[pub["scholar paper id"]]:
                 pub["scholar citations"] = scholar_cache[pub["scholar paper id"]]["citations"]
             if "references" in scholar_cache[pub["scholar paper id"]]:
-                pub["scholar references"] = scholar_cache[pub["scholar paper id"]]["references"]
-                pub["scholar reference count"] = len(scholar_cache[pub["scholar paper id"]]["references"])
+                references = scholar_cache[pub["scholar paper id"]]["references"]
+                pub["scholar references"] = references
+                pub["scholar reference count"] = len(references) if references is not None else 0
                 if pub["scholar reference count"] > 0:
                     pub["scholar valid"] = True
 
