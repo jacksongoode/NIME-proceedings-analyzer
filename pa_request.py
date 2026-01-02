@@ -52,10 +52,22 @@ def scholar_api_paper_search(query, key, sleep, wait):
     while ("message" in query_result.keys()):
         if key != "":
             api_key = "&x-api-key=" + key
-            query_result = requests.get(api + query + fields + api_key).json()
+            while True:
+                try:
+                    query_result = requests.get(api + query + fields + api_key).json()
+                    break 
+                except (requests.exceptions.RequestException, Exception) as e:
+                    pa_print.tprint(f"Request failed: {e} \n Retrying...")
+                    time.sleep(sleep)            
             time.sleep(sleep)
         else:
-            query_result = requests.get(api + query + fields).json()
+            while True:
+                try:
+                    query_result = requests.get(api + query + fields).json()
+                    break 
+                except (requests.exceptions.RequestException, Exception) as e:
+                    pa_print.tprint(f"Request failed: {e} \n Retrying...")
+                    time.sleep(sleep)    
             time.sleep(sleep)
         if wait == False:
             break
@@ -69,10 +81,22 @@ def scholar_api_paper_manual_lookup(paper_id, key, sleep, wait):
     while ("message" in query_result.keys()):
         if key != "":
             api_key = "&x-api-key=" + key
-            query_result = requests.get(api + paper_id + fields + api_key).json()
+            while True:
+                try:
+                    query_result = requests.get(api + paper_id + fields + api_key).json()
+                    break 
+                except (requests.exceptions.RequestException, Exception) as e:
+                    pa_print.tprint(f"Request failed: {e} \n Retrying...")
+                    time.sleep(sleep) 
             time.sleep(sleep)
         else:
-            query_result = requests.get(api + paper_id + fields).json()
+            while True:
+                try:
+                    query_result = requests.get(api + paper_id + fields).json()
+                    break 
+                except (requests.exceptions.RequestException, Exception) as e:
+                    pa_print.tprint(f"Request failed: {e} \n Retrying...")
+                    time.sleep(sleep) 
             time.sleep(sleep)
         if wait == False:
             break
@@ -94,10 +118,22 @@ def scholar_api_paper_citref_lookup(paper_id, key, sleep, wait):
     while ("message" in query_result.keys()):
         if key != "":
             api_key = "&x-api-key=" + key
-            query_result = requests.get(api + paper_id + fields + api_key).json()
+            while True:
+                try:
+                    query_result = requests.get(api + paper_id + fields + api_key).json()
+                    break 
+                except (requests.exceptions.RequestException, Exception) as e:
+                    pa_print.tprint(f"Request failed: {e} \n Retrying...")
+                    time.sleep(sleep) 
             time.sleep(sleep)
         else:
-            query_result = requests.get(api + paper_id + fields).json()
+            while True:
+                try:
+                    query_result = requests.get(api + paper_id + fields).json()
+                    break 
+                except (requests.exceptions.RequestException, Exception) as e:
+                    pa_print.tprint(f"Request failed: {e} \n Retrying...")
+                    time.sleep(sleep) 
             time.sleep(sleep)
         if wait == False:
             break
