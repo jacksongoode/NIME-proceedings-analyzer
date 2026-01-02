@@ -288,3 +288,41 @@ def post_processing(pub, args):
 
     # adding word count
     pub["word count"] = len(full_text.split())
+
+
+def sort_bibtex(filename):
+    """
+    Sort BibTeX entries in a file by their citation ID alphabetically.
+    The file is modified in place.
+    
+    Args:
+        filename: Path to the BibTeX file
+    """
+    # Read the file
+    with open(filename, 'r', encoding='utf-8') as f:
+        bibtex_string = f.read()
+    
+    # Pattern to match entire BibTeX entries
+    pattern = r'@\w+\{[^@]+\}'
+    
+    # Find all BibTeX entries
+    entries = re.findall(pattern, bibtex_string, re.DOTALL)
+    
+    # Extract ID from each entry and create (id, entry) tuples
+    entries_with_ids = []
+    for entry in entries:
+        # Extract the ID (text between { and ,)
+        id_match = re.search(r'@\w+\{([^,]+),', entry)
+        if id_match:
+            entry_id = id_match.group(1).strip()
+            entries_with_ids.append((entry_id, entry))
+    
+    # Sort by ID
+    entries_with_ids.sort(key=lambda x: x[0])
+    
+    # Create sorted output
+    sorted_bibtex = '\n\n'.join(entry for _, entry in entries_with_ids)
+    
+    # Write back to the file
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(sorted_bibtex)

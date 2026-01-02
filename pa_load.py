@@ -43,7 +43,7 @@ from tqdm import tqdm
 
 import pa_extract
 import pa_print
-from pa_utils import boolify
+from pa_utils import boolify, sort_bibtex
 
 # Variables
 bibtex_url = "http://nime-conference.github.io/NIME-bibliography/nime_papers.bib"
@@ -166,6 +166,7 @@ def load_bibtex(path):
         pa_print.tprint("\nDownloading bibtex database...")
         r = requests.get(bibtex_url, allow_redirects=True)
         open(path, "wb").write(r.content)
+        sort_bibtex(path)
 
     with open(path) as bib_file:
         parser = bibtexparser.bparser.BibTexParser()
