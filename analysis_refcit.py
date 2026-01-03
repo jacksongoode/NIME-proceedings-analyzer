@@ -51,6 +51,7 @@ if sys.version_info < (3, 11):
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+nltk.download('punkt_tab', download_dir="./cache/nltk_data", quiet=True)
 nltk.download("punkt", download_dir="./cache/nltk_data", quiet=True)
 nltk.download("wordnet", download_dir="./cache/nltk_data", quiet=True)
 nltk.download("omw-1.4", download_dir="./cache/nltk_data", quiet=True)
