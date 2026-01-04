@@ -183,6 +183,7 @@ def gen_lda(lda_model, corpus, processed_bodies, dictionary):
 
 def gen_wordcloud(processed_data):
     from wordcloud import WordCloud
+    import numpy as np
 
     for data in processed_data:
         words = [word for doc in data[1] for word in doc]
@@ -190,7 +191,11 @@ def gen_wordcloud(processed_data):
         wc = WordCloud(
             width=1920, height=1444, background_color="white", max_words=500
         ).generate_from_frequencies(counter)
-        plt.imshow(wc, interpolation="bilinear")
+        
+        wc_image = wc.to_image()
+        wc_array = np.array(wc_image)
+        
+        plt.imshow(wc_array, interpolation="bilinear")
         plt.axis("off")
         plt.savefig(f"./output/wordcloud_{data[0]}.png", dpi=300)
     pa_print.nprint("\nGenerated .png files in ./output!")
@@ -213,10 +218,10 @@ def gen_topic_plots(corpus, lda_model, year_dict, year_list, year_start, year_en
                             year_dict[j][k] = tuple(year_top)
 
     # Weight the topic values by numbers of papers published each year
-    for key, val in year_dict.items():
+    for idx, (key, val) in enumerate(year_dict.items()):
         for index, j in enumerate(val):
             j = list(j)
-            j[1] = float(j[1]) / year_counts[index]
+            j[1] = float(j[1]) / year_counts[idx]
             year_dict[key][index] = tuple(j)
 
     # Create empty dict of lists for year range (n topics each year)
@@ -396,7 +401,7 @@ if __name__ == "__main__":
         int_years = list(map(int, selected_years))
         year_start, year_end = min(int_years), max(int_years) + 1
     else:
-        year_start, year_end = 2001, 2021
+        year_start, year_end = 2001, 2026
 
     # Make sure dirs exist
     for d in [lda_src, "./output"]:
