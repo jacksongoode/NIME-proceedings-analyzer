@@ -1,10 +1,11 @@
 entry type,,,,
 years,2011,,,
-years,2014,2016,,
-keywords,movement,skill,attention,
+years,2012,2023,,
+keywords,movement,skill,embodied,sound
 ignore,music,midi,technology,
 merge,movement,motion,gesture,dance
 merge,control,controller,,
+merge,embodied,embodyment,,
 merge,sound,audio,,
 merge,performance,performer,,
 merge,play,playing,,
