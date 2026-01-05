@@ -328,7 +328,11 @@ def gen_wordcloud(processed_data):
         wc = WordCloud(
             width=1920, height=1444, background_color="white", max_words=500
         ).generate_from_frequencies(counter)
-        plt.imshow(wc, interpolation="bilinear")
+        
+        wc_image = wc.to_image()
+        wc_array = np.array(wc_image)
+        
+        plt.imshow(wc_array, interpolation="bilinear")
         plt.axis("off")
         plt.savefig(f"./output/wordcloud_{data[0]}.png", dpi=300)
     pa_print.nprint("\nGenerated .png files in ./output!")
@@ -796,7 +800,7 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
                                 else:
                                     ref_fields_per_year[y][fld["category"]] = 1
                     if any(bib_df["scholar paper id"].isin([ref["paperId"]])):
-                        for fld in ref["s2FieldsOfStudy"]:
+                        for fld in ref["s2FieldsOfStudy"] or []:
                             if fld["source"] == "s2-fos-model":
                                 if fld["category"] in ref_fields_nime:
                                     ref_fields_nime[fld["category"]] = (
@@ -831,10 +835,10 @@ def stats_refcit(bib_df, cit_df, ref_df, auth_df):
     proc_fields_per_year = pd.DataFrame.from_dict(proc_fields_per_year, orient="index")
 
     for index, _ in ref_venues.iterrows():
-        ref_venues.at[index, "name"] = pub_venues[index]
-
+        ref_venues.at[index, "name"] = pub_venues[index][0]
+        
     for index, _ in cit_venues.iterrows():
-        cit_venues.at[index, "name"] = pub_venues[index]
+        cit_venues.at[index, "name"] = pub_venues[index][0]
 
     temp = []
     for id in list(ref_venues_per_year.columns):
